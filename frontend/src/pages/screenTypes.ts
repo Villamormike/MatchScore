@@ -8,3 +8,4 @@ export type ScreenKey =
   | 'recommendations'
   | 'scoreHistory'
   | 'resumeEditor'
+  | 'blankEditor'

@@ -18,8 +18,9 @@ const navigation: { label: string; screen: ScreenKey }[] = [
   { label: 'Feedback', screen: 'recommendations' },
 ]
 
-function AppHeader({ screen, onNavigate }: { screen: ScreenKey; onNavigate: (screen: ScreenKey) => void }) {
+function AppHeader({ screen, onNavigate, darkMode, onToggleDarkMode }: { screen: ScreenKey; onNavigate: (screen: ScreenKey) => void; darkMode: boolean; onToggleDarkMode: () => void }) {
   const activeNav = screen === 'resumeEditor' ? 'templates' : screen === 'matchResults' ? 'jobMatches' : screen === 'scoreHistory' ? 'dashboard' : screen
+  const [showProfileMenu, setShowProfileMenu] = useState(false)
 
   return (
     <header className="app-header">
@@ -48,10 +49,17 @@ function AppHeader({ screen, onNavigate }: { screen: ScreenKey; onNavigate: (scr
           <span aria-hidden="true">♧</span>
           <i />
         </button>
-        <button className="profile-button" type="button" onClick={() => onNavigate('login')} aria-label="Open account">
+        <button className="profile-button" type="button" onClick={() => setShowProfileMenu((visible) => !visible)} aria-label="Open account">
           <span className="avatar">AM</span>
           <span className="profile-name">Alex Mercer</span>
         </button>
+        {showProfileMenu && <div className="profile-menu">
+          <strong>Alex Mercer</strong>
+          <small>hello@earlycareer.dev</small>
+          <button type="button" onClick={onToggleDarkMode}>{darkMode ? '☀  Use light mode' : '☾  Use dark mode'}</button>
+          <button type="button" onClick={() => setShowProfileMenu(false)}>⚙  Profile settings</button>
+          <button type="button" onClick={() => onNavigate('login')}>↪  Sign out</button>
+        </div>}
       </div>
     </header>
   )
@@ -59,9 +67,10 @@ function AppHeader({ screen, onNavigate }: { screen: ScreenKey; onNavigate: (scr
 
 function App() {
   const [screen, setScreen] = useState<ScreenKey>('home')
+  const [darkMode, setDarkMode] = useState(false)
 
   if (screen === 'home') {
-    return <Home onGetStarted={() => setScreen('login')} onSignIn={() => setScreen('login')} />
+    return <div className={darkMode ? 'theme-dark' : ''}><Home darkMode={darkMode} onToggleDarkMode={() => setDarkMode((current) => !current)} onGetStarted={() => setScreen('login')} onSignIn={() => setScreen('login')} /></div>
   }
   if (screen === 'login') {
     return <Login onSignIn={() => setScreen('dashboard')} />
@@ -83,12 +92,14 @@ function App() {
         return <ScoreHistory onViewDetails={() => setScreen('matchResults')} />
       case 'resumeEditor':
         return <ResumeEditor onNavigate={setScreen} />
+      case 'blankEditor':
+        return <ResumeEditor onNavigate={setScreen} blank />
     }
   }
 
   return (
-    <div className="app-shell">
-      <AppHeader screen={screen} onNavigate={setScreen} />
+    <div className={`app-shell ${darkMode ? 'theme-dark' : ''}`}>
+      <AppHeader screen={screen} onNavigate={setScreen} darkMode={darkMode} onToggleDarkMode={() => setDarkMode((current) => !current)} />
       <main className="page-content" key={screen}>{renderScreen()}</main>
     </div>
   )

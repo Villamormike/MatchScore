@@ -4,6 +4,8 @@ import './Home.css'
 type Props = {
   onGetStarted: () => void
   onSignIn: () => void
+  darkMode: boolean
+  onToggleDarkMode: () => void
 }
 
 const steps = [
@@ -12,7 +14,7 @@ const steps = [
   { number: '03', title: 'Improve with confidence', text: 'Get clear, practical recommendations that make every application stronger.' },
 ]
 
-function Home({ onGetStarted, onSignIn }: Props) {
+function Home({ onGetStarted, onSignIn, darkMode, onToggleDarkMode }: Props) {
   const [animatedScore, setAnimatedScore] = useState(0)
 
   useEffect(() => {
@@ -48,6 +50,7 @@ function Home({ onGetStarted, onSignIn }: Props) {
           <a href="#stories">Stories</a>
         </div>
         <div className="home-nav-actions">
+          <button className="theme-toggle" type="button" onClick={onToggleDarkMode} aria-label={darkMode ? 'Use light mode' : 'Use dark mode'}>{darkMode ? '☀' : '☾'}</button>
           <button className="home-sign-in" type="button" onClick={onSignIn}>Sign in</button>
           <button className="home-nav-cta" type="button" onClick={onGetStarted}>Get started <span>→</span></button>
         </div>

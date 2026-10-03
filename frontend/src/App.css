@@ -163,6 +163,38 @@
   white-space: nowrap;
 }
 
+.profile-menu {
+  position: absolute;
+  top: 61px;
+  right: 4.5vw;
+  z-index: 20;
+  width: 205px;
+  padding: 13px;
+  border: 1px solid #e1e8ed;
+  border-radius: 10px;
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(25, 45, 70, .12);
+}
+
+.profile-menu strong,
+.profile-menu small {
+  display: block;
+}
+
+.profile-menu strong { color: #243149; font-size: 11px; }
+.profile-menu small { margin: 3px 0 10px; color: #8b9ab0; font-size: 9px; }
+.profile-menu button {
+  width: 100%;
+  padding: 8px;
+  border: 0;
+  border-radius: 6px;
+  color: #52627a;
+  background: transparent;
+  text-align: left;
+  font-size: 10px;
+}
+.profile-menu button:hover { color: #078f83; background: #edfaf7; }
+
 .avatar {
   width: 31px;
   height: 31px;
@@ -267,14 +299,33 @@
 }
 
 .action-outline {
-  border-color: #e0e7ef;
-  background: #fff;
+  border-color: #cbd8e2;
+  background: #f8fafc;
   color: #40506a;
 }
 
 .action-soft {
-  background: #effaf8;
+  border: 1px solid #c7e6e1;
+  background: #e5f7f3;
   color: #078d81;
+}
+
+.document-actions .action-outline {
+  border-color: #c3d2de;
+  background: #f7fafc;
+  color: #344962;
+}
+
+.document-actions .action-soft {
+  border-color: #bfe3dc;
+  background: #e1f6f1;
+  color: #087d73;
+}
+
+.document-actions .more-button {
+  border-color: #c3d2de;
+  background: #f7fafc;
+  color: #52647b;
 }
 
 .text-link {
@@ -291,6 +342,427 @@
 @keyframes page-in {
   from { opacity: 0; transform: translateY(4px); }
   to { opacity: 1; transform: translateY(0); }
+}
+
+.theme-dark {
+  color-scheme: dark;
+}
+
+.theme-dark .home-page,
+.theme-dark .app-shell {
+  background: #101d25;
+  color: #e5f2f0;
+}
+
+.theme-dark .home-nav,
+.theme-dark .home-footer,
+.theme-dark .home-section {
+  background: #101d25;
+}
+
+.theme-dark .home-hero {
+  background: linear-gradient(135deg, #142a33, #10242d);
+}
+
+.theme-dark .home-hero h1,
+.theme-dark .home-section h2,
+.theme-dark .feature-copy h2,
+.theme-dark .home-cta h2,
+.theme-dark .home-brand,
+.theme-dark .home-sign-in {
+  color: #e9f7f4;
+}
+
+.theme-dark .home-lede,
+.theme-dark .home-nav-links a,
+.theme-dark .home-footer a,
+.theme-dark .home-proof,
+.theme-dark .home-trusted {
+  color: #9db4b7;
+}
+
+.theme-dark .home-trusted {
+  background: #162b33;
+}
+
+.theme-dark .home-feature {
+  background: #162b33;
+}
+
+.theme-dark .home-quote p {
+  color: #d8e8e6;
+}
+
+.theme-dark .app-header {
+  border-color: #273b43;
+  background: #142730;
+}
+
+.theme-dark .nav-link,
+.theme-dark .profile-button {
+  color: #a8c0c1;
+}
+
+.theme-dark .surface,
+.theme-dark .profile-menu {
+  border-color: #2b4249;
+  background: #172c35;
+  box-shadow: 0 10px 25px rgba(0, 0, 0, .2);
+}
+
+.theme-dark .page-heading h1,
+.theme-dark .section-title-row h2,
+.theme-dark .profile-menu strong {
+  color: #e5f2f0;
+}
+
+.theme-dark .page-heading p,
+.theme-dark .profile-menu small {
+  color: #9db4b7;
+}
+
+.theme-dark .profile-menu button {
+  color: #b8cece;
+}
+
+.app-shell.theme-dark .page-content {
+  color: #d8e8e6;
+}
+
+.app-shell.theme-dark {
+  background: #101d25;
+}
+
+.app-shell.theme-dark .app-header {
+  border-color: #273b43;
+  background: #142730;
+}
+
+.app-shell.theme-dark .nav-link,
+.app-shell.theme-dark .profile-button,
+.app-shell.theme-dark .brand {
+  color: #a8c0c1;
+}
+
+.app-shell.theme-dark .brand:hover,
+.app-shell.theme-dark .nav-link.is-active {
+  color: #dffaf5;
+}
+
+.app-shell.theme-dark .nav-link.is-active {
+  background: #204941;
+}
+
+.app-shell.theme-dark .header-search {
+  border-color: #36535a;
+  background: #1a333c;
+  color: #a8c0c1;
+}
+
+.app-shell.theme-dark .header-search input {
+  color: #d8e8e6;
+}
+
+.app-shell.theme-dark .header-search input::placeholder {
+  color: #779195;
+}
+
+.app-shell.theme-dark .icon-button {
+  border-color: #36535a;
+  background: #1d3740;
+  color: #c4d8d8;
+}
+
+.app-shell.theme-dark .surface {
+  border-color: #2b4249;
+  background: #172c35;
+  color: #d8e8e6;
+}
+
+.app-shell.theme-dark .page-heading h1,
+.app-shell.theme-dark .section-title-row h2,
+.app-shell.theme-dark .selected-document-column h2,
+.app-shell.theme-dark .job-description-heading h2,
+.app-shell.theme-dark .document-card h3,
+.app-shell.theme-dark .selected-resume-card h3,
+.app-shell.theme-dark .recent-match-copy strong,
+.app-shell.theme-dark .template-card-footer strong,
+.app-shell.theme-dark .keyword-card-heading h2 {
+  color: #e5f2f0;
+}
+
+.app-shell.theme-dark .page-heading p,
+.app-shell.theme-dark .document-note,
+.app-shell.theme-dark .document-time,
+.app-shell.theme-dark .recent-match-copy small,
+.app-shell.theme-dark .resume-summary,
+.app-shell.theme-dark .resume-skills,
+.app-shell.theme-dark .score-explanation p,
+.app-shell.theme-dark .template-card-footer small {
+  color: #9db4b7;
+}
+
+.app-shell.theme-dark .action-outline,
+.app-shell.theme-dark .more-button {
+  border-color: #3a555c;
+  background: #1d3740;
+  color: #c4d8d8;
+}
+
+.app-shell.theme-dark .action-soft {
+  background: #204941;
+  color: #9de4d8;
+}
+
+.app-shell.theme-dark .document-actions,
+.app-shell.theme-dark .score-button-row,
+.app-shell.theme-dark .resume-card-rule {
+  border-color: #2b4249;
+}
+
+.app-shell.theme-dark .document-kind,
+.app-shell.theme-dark .template-filters,
+.app-shell.theme-dark .template-preview,
+.app-shell.theme-dark .input-readiness,
+.app-shell.theme-dark .resume-options {
+  border-color: #324b52;
+  background: #1d3740;
+}
+
+.app-shell.theme-dark .stat-label,
+.app-shell.theme-dark .eyebrow,
+.app-shell.theme-dark .resume-card-top small {
+  color: #91abad;
+}
+
+.app-shell.theme-dark .stat-card strong {
+  color: #e5f2f0;
+}
+
+.app-shell.theme-dark .stat-card small {
+  color: #9db4b7;
+}
+
+.app-shell.theme-dark .resume-options button,
+.app-shell.theme-dark .template-filters button {
+  color: #b8cece;
+}
+
+.app-shell.theme-dark .resume-options button:hover,
+.app-shell.theme-dark .resume-options button.is-current,
+.app-shell.theme-dark .template-filters button.is-selected {
+  color: #fff;
+  background: #0e9c8e;
+}
+
+.app-shell.theme-dark .job-description-card textarea {
+  border-color: #36535a;
+  color: #d8e8e6;
+  background: #10252e;
+}
+
+.app-shell.theme-dark .job-description-card textarea::placeholder {
+  color: #779195;
+}
+
+.app-shell.theme-dark .description-bottom,
+.app-shell.theme-dark .detected-signals small,
+.app-shell.theme-dark .detected-signals em {
+  color: #91abad;
+}
+
+.app-shell.theme-dark .readiness-heading {
+  color: #c4d8d8;
+}
+
+.app-shell.theme-dark .algorithm-label,
+.app-shell.theme-dark .explanation-label {
+  background: #204941;
+  color: #9de4d8;
+}
+
+.app-shell.theme-dark .score-gauge-inner {
+  background: #172c35;
+}
+
+.app-shell.theme-dark .score-gauge-inner strong,
+.app-shell.theme-dark .score-gauge-inner span {
+  color: #e5f2f0;
+}
+
+.app-shell.theme-dark .template-preview .preview-line,
+.app-shell.theme-dark .template-preview .preview-rule {
+  background: #49636a;
+}
+
+.app-shell.theme-dark .template-preview .preview-columns i {
+  background: #28434b;
+}
+
+.app-shell.theme-dark .recommendation-card h2,
+.app-shell.theme-dark .recommendation-reason,
+.app-shell.theme-dark .recommendation-card .impact-label,
+.app-shell.theme-dark .resume-sections-card button,
+.app-shell.theme-dark .empty-recommendations strong,
+.app-shell.theme-dark .empty-recommendations {
+  color: #d8e8e6;
+}
+
+.app-shell.theme-dark .suggested-rephrase {
+  border-color: #36535a;
+  background: #10252e;
+}
+
+.app-shell.theme-dark .suggested-rephrase span {
+  color: #8eabad;
+}
+
+.app-shell.theme-dark .suggested-rephrase p {
+  color: #c6d8d8;
+}
+
+.app-shell.theme-dark .resume-sections-card button.is-active,
+.app-shell.theme-dark .resume-sections-card button:hover {
+  color: #8de4d8;
+  background: #204941;
+}
+
+.app-shell.theme-dark .resume-sections-card button small {
+  color: #b8cece;
+  background: #2b474f;
+}
+
+.app-shell.theme-dark .resume-sections-card button.is-active small {
+  color: #087d73;
+  background: #c9eee8;
+}
+
+.app-shell.theme-dark .recommendation-category {
+  color: #087d73;
+  background: #d9f5ef;
+}
+
+.app-shell.theme-dark .editor-toolbar,
+.app-shell.theme-dark .editor-sections-panel,
+.app-shell.theme-dark .editor-format-panel {
+  border-color: #2b4249;
+  background: #172c35;
+}
+
+.app-shell.theme-dark .editor-workspace {
+  background: #101d25;
+}
+
+.app-shell.theme-dark .editor-toolbar > strong,
+.app-shell.theme-dark .editor-sections-panel h2,
+.app-shell.theme-dark .editor-format-panel h2 {
+  color: #d8e8e6;
+}
+
+.app-shell.theme-dark .editor-section-row,
+.app-shell.theme-dark .editor-format-panel select,
+.app-shell.theme-dark .add-section-button {
+  border-color: #36535a;
+  background: #1d3740;
+  color: #c4d8d8;
+}
+
+.app-shell.theme-dark .editor-section-row.is-active {
+  border-color: #0e9c8e;
+  background: #204941;
+}
+
+.app-shell.theme-dark .editor-section-row > button:first-child,
+.app-shell.theme-dark .editor-format-panel > label {
+  color: #c4d8d8;
+}
+
+.app-shell.theme-dark .resume-paper {
+  border-color: #36535a;
+  background: #e9f0ef;
+  color: #25394a;
+}
+
+.app-shell.theme-dark .resume-editor-page .editor-toolbar {
+  border-color: #2b4249;
+  background: #172c35;
+}
+
+.app-shell.theme-dark .custom-paper-section {
+  border-color: #39736e;
+  background: #edf4f3;
+}
+
+.app-shell.theme-dark .editor-pages-bar {
+  border-color: #2b4249;
+  background: #142730;
+}
+
+.app-shell.theme-dark .editor-pages-bar button,
+.app-shell.theme-dark .add-text-button {
+  border-color: #36535a;
+  color: #b8cece;
+  background: #1d3740;
+}
+
+.app-shell.theme-dark .editor-pages-bar button.is-active {
+  color: #9de4d8;
+  background: #204941;
+}
+
+.app-shell.theme-dark .freeform-text-block {
+  border-color: #39736e;
+  background: #edf4f3;
+}
+
+.app-shell.theme-dark .add-image-button {
+  border-color: #36535a;
+  color: #9de4d8;
+  background: #204941;
+}
+
+.app-shell.theme-dark .color-control {
+  border-color: #36535a;
+  background: #1d3740;
+}
+
+.app-shell.theme-dark .color-control code {
+  color: #b8cece;
+}
+
+.app-shell.theme-dark .history-ranges,
+.app-shell.theme-dark .scoring-table th {
+  border-color: #36535a;
+  background: #1d3740;
+}
+
+.app-shell.theme-dark .history-ranges button,
+.app-shell.theme-dark .trend-card-heading > span,
+.app-shell.theme-dark .trend-card-heading p,
+.app-shell.theme-dark .chart-axis-labels,
+.app-shell.theme-dark .scoring-table th,
+.app-shell.theme-dark .scoring-table td {
+  color: #a8c0c1;
+}
+
+.app-shell.theme-dark .trend-card-heading h2,
+.app-shell.theme-dark .scoring-log-section h2,
+.app-shell.theme-dark .scoring-table td strong {
+  color: #d8e8e6;
+}
+
+.app-shell.theme-dark .chart-grid-line {
+  stroke: #36535a;
+}
+
+.app-shell.theme-dark .dashboard-page,
+.app-shell.theme-dark .templates-page,
+.app-shell.theme-dark .job-matches-page,
+.app-shell.theme-dark .match-results-page,
+.app-shell.theme-dark .score-history-page,
+.app-shell.theme-dark .recommendations-page,
+.app-shell.theme-dark .resume-editor-page {
+  color: #d8e8e6;
 }
 
 @media (max-width: 1020px) {

@@ -155,6 +155,72 @@
   font-size: 10px;
 }
 
+.input-readiness {
+  padding: 11px 12px;
+  border: 1px solid #e5edf0;
+  border-radius: 8px;
+  margin: 1px 0 14px;
+  background: #fbfdfd;
+}
+
+.readiness-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  color: #52627a;
+  font-size: 10px;
+}
+
+.readiness-heading strong {
+  color: #078e82;
+  font-size: 10px;
+}
+
+.readiness-track {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 4px;
+  margin-top: 8px;
+  background: #e6f1f0;
+}
+
+.readiness-track span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #8bd4cc, #078e82);
+  transition: width .3s ease;
+}
+
+.detected-signals {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 5px;
+  margin-top: 10px;
+}
+
+.detected-signals small {
+  width: 100%;
+  color: #8c9aab;
+  font-size: 9px;
+}
+
+.detected-signals span {
+  padding: 4px 6px;
+  border-radius: 4px;
+  color: #087f75;
+  background: #e5f8f4;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.detected-signals em {
+  color: #a0abba;
+  font-size: 9px;
+  font-style: normal;
+}
+
 .score-button-row {
   display: flex;
   align-items: center;

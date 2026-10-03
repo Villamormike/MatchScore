@@ -29,8 +29,8 @@ function Templates({ onNavigate }: Props) {
         </div>
       </section>
       <section className="template-grid">
-        <button className="surface create-template-card" type="button" onClick={() => onNavigate('resumeEditor')}>
-          <span className="create-template-icon">＋</span><strong>Create Custom Template</strong><small>Build your own structure from scratch</small>
+        <button className="surface create-template-card" type="button" onClick={() => onNavigate('blankEditor')}>
+          <span className="create-template-icon">＋</span><strong>Make your own template</strong><small>Start with a blank page and design it yourself</small>
         </button>
         <article className="ai-template-card">
           <span className="ai-template-icon">✧</span><h2>{generated ? 'Your layout is ready' : 'AI-Generated Layout'}</h2>

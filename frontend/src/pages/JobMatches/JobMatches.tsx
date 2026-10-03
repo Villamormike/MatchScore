@@ -8,12 +8,24 @@ function JobMatches({ onScore }: { onScore: () => void }) {
   const [selectedResume, setSelectedResume] = useState(0)
   const [showResumeOptions, setShowResumeOptions] = useState(false)
   const [attempted, setAttempted] = useState(false)
+  const [isScoring, setIsScoring] = useState(false)
   const resumes = [
     { name: 'Alex Mercer – Frontend Dev', template: 'Modern Layout — Single Column', edited: 'Edited 2h ago', summary: 'Detail-oriented Junior Web Developer with a strong foundation in modern frontend architectures. React, TypeScript...', skills: 'React, Next.js, TypeScript, JavaScript, HTML5, CSS3, SQL' },
     { name: 'Alex Mercer – UX Portfolio', template: 'Creative Portfolio — Case Studies', edited: 'Edited yesterday', summary: 'Product-minded designer focused on creating thoughtful digital experiences and scalable design systems.', skills: 'Figma, Prototyping, Design Systems, Research, Accessibility' },
   ]
   const resume = resumes[selectedResume]
   const isReady = description.trim().length >= 150
+  const detectedSkills = ['React', 'TypeScript', 'Testing', 'Accessibility'].filter((skill) => description.toLowerCase().includes(skill.toLowerCase()))
+  const readiness = Math.min(Math.round((description.trim().length / 150) * 100), 100)
+
+  const handleScore = () => {
+    if (!isReady || isScoring) {
+      setAttempted(true)
+      return
+    }
+    setIsScoring(true)
+    window.setTimeout(onScore, 950)
+  }
 
   return (
     <div className="job-matches-page">
@@ -40,7 +52,12 @@ function JobMatches({ onScore }: { onScore: () => void }) {
             <textarea aria-label="Job description" placeholder="Paste the full job description here (responsibilities, requirements, technical stack)..." value={description} onChange={(event) => { setDescription(event.target.value); setAttempted(false) }} />
             <div className="description-bottom"><small className={attempted && !isReady ? 'length-error' : ''}>{description.trim().length}/150 minimum characters</small><span>Cosine Similarity V2 Algorithm Active</span></div>
             {attempted && !isReady && <p className="description-error" role="alert">Add at least 150 characters to score this resume.</p>}
-            <div className="score-button-row"><span className="algorithm-label"><span>◉</span> Cosine Similarity V2 Algorithm Active</span><button className={`action-button action-primary ${!isReady ? 'score-button--waiting' : ''}`} type="button" onClick={() => isReady ? onScore() : setAttempted(true)}>✧ &nbsp; Compute Match Score</button></div>
+            <div className="input-readiness" aria-live="polite">
+              <div className="readiness-heading"><span>Job description readiness</span><strong>{readiness}%</strong></div>
+              <div className="readiness-track"><span style={{ width: `${readiness}%` }} /></div>
+              <div className="detected-signals"><small>Detected signals</small>{detectedSkills.length > 0 ? detectedSkills.map((skill) => <span key={skill}>✓ {skill}</span>) : <em>Paste a job description to detect role signals</em>}</div>
+            </div>
+            <div className="score-button-row"><span className="algorithm-label"><span>◉</span> Cosine Similarity V2 Algorithm Active</span><button className={`action-button action-primary ${!isReady ? 'score-button--waiting' : ''}`} type="button" disabled={isScoring} onClick={handleScore}>{isScoring ? '◌  Analyzing resume...' : '✧  Compute Match Score'}</button></div>
           </div>
         </section>
       </div>

@@ -3,6 +3,88 @@
   margin-top: -12px;
 }
 
+.resume-editor-page .editor-toolbar {
+  background: #fff;
+  border: 1px solid #e5ebf1;
+  border-radius: 10px 10px 0 0;
+  padding-inline: 12px;
+}
+
+.editor-pages-bar {
+  min-height: 43px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  padding: 7px 12px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+  border: 1px solid #e5ebf1;
+  border-top: 0;
+  background: #f8fafc;
+}
+
+.editor-pages-bar > span {
+  flex: 0 0 auto;
+  margin-right: 5px;
+  color: #8190a3;
+  font-size: 9px;
+  font-weight: 800;
+  text-transform: uppercase;
+}
+
+.editor-pages-bar button {
+  flex: 0 0 auto;
+  min-height: 27px;
+  border: 1px solid #dbe5e9;
+  border-radius: 6px;
+  padding: 0 9px;
+  color: #64758a;
+  background: #fff;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.editor-pages-bar button.is-active {
+  border-color: #0e9c8e;
+  color: #087d73;
+  background: #e5f7f3;
+}
+
+.editor-pages-bar .add-page-button {
+  border-style: dashed;
+  color: #078e83;
+  background: transparent;
+}
+
+.page-boundary-label {
+  margin-left: auto;
+  color: #8190a3;
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.page-size-control {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #8190a3;
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.page-size-control select {
+  min-height: 27px;
+  border: 1px solid #b8dcd7;
+  border-radius: 6px;
+  padding: 0 5px;
+  color: #078e83;
+  background: #f4fbfa;
+  font-size: 9px;
+  font-weight: 700;
+}
+
 .editor-toolbar {
   min-height: 48px;
   display: flex;
@@ -87,6 +169,12 @@
   font-weight: 800;
 }
 
+.editor-sections-panel h2 small {
+  color: #9aa7b6;
+  font-size: 7px;
+  font-weight: 700;
+}
+
 .editor-section-row {
   min-height: 34px;
   display: flex;
@@ -133,6 +221,78 @@
   font-size: 12px;
 }
 
+.add-block-button {
+  width: 25px;
+  height: 29px;
+  border: 0;
+  padding: 0;
+  color: #0e9c8e;
+  background: transparent;
+  font-size: 16px;
+  line-height: 1;
+}
+
+.add-block-button:hover {
+  color: #08766d;
+  background: #e8f9f6;
+}
+
+.visually-hidden-input {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+
+.add-image-button {
+  width: 100%;
+  min-height: 32px;
+  border: 1px solid #d5e4e7;
+  border-radius: 7px;
+  margin-top: 7px;
+  color: #078e83;
+  background: #f4fbfa;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.add-image-button:hover {
+  border-color: #0e9c8e;
+  background: #e8f9f6;
+}
+
+.add-text-button {
+  width: 100%;
+  min-height: 32px;
+  border: 1px solid #d5e4e7;
+  border-radius: 7px;
+  margin-top: 7px;
+  color: #52647b;
+  background: #f8fafc;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.add-text-button:hover {
+  border-color: #0e9c8e;
+  color: #078e83;
+  background: #e8f9f6;
+}
+
+.freeform-block-tools {
+  display: grid;
+  gap: 5px;
+  margin-top: 12px;
+}
+
+.freeform-block-tools > strong {
+  color: #8190a3;
+  font-size: 8px;
+  letter-spacing: .04em;
+}
+
 .visibility-toggle.is-hidden {
   color: #cc7b57;
 }
@@ -149,6 +309,13 @@
   font-weight: 650;
 }
 
+.canvas-help {
+  margin: 10px 1px 0;
+  color: #8a98a9;
+  font-size: 8px;
+  line-height: 1.45;
+}
+
 .resume-canvas {
   min-width: 0;
   padding: 30px 25px;
@@ -159,6 +326,7 @@
 }
 
 .resume-paper {
+  position: relative;
   width: min(100%, 600px);
   min-height: 480px;
   padding: 31px 37px;
@@ -167,6 +335,406 @@
   box-shadow: 0 5px 20px rgba(25,45,70,.06);
   color: #35445b;
   font-size: 11pt;
+}
+
+.resume-paper--blank {
+  box-sizing: border-box;
+  min-height: var(--page-height, 680px);
+  padding: 45px;
+  display: block;
+  border-radius: 3px;
+  overflow-x: clip;
+  overflow-y: visible;
+}
+
+.freeform-page-editor {
+  position: relative;
+  z-index: 1;
+  box-sizing: border-box;
+  min-width: 0;
+  min-height: 110px;
+  max-width: 100%;
+  overflow-x: clip;
+  overflow-y: visible;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  outline: 0;
+  color: inherit;
+  font: inherit;
+  line-height: 1.5;
+  white-space: pre-wrap;
+}
+
+.freeform-page-editor:not(:empty)::before,
+.freeform-page-editor:not(:empty)::after {
+  content: '';
+  display: block;
+  pointer-events: none;
+}
+
+.freeform-page-editor:not(:empty)::before {
+  float: left;
+  width: var(--flow-left-width, 0px);
+  height: var(--flow-left-height, 0px);
+}
+
+.freeform-page-editor:not(:empty)::after {
+  float: right;
+  width: var(--flow-right-width, 0px);
+  height: var(--flow-right-height, 0px);
+}
+
+.freeform-page-editor:empty::before {
+  content: attr(data-placeholder);
+  color: #9aa7b6;
+  pointer-events: none;
+}
+
+.resume-paper--blank::before {
+  content: 'INSIDE PAGE';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  border: 1px solid #c7d5df;
+  color: #a0afbc;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .08em;
+  padding: 8px;
+  pointer-events: none;
+  text-align: right;
+}
+
+.resume-paper--blank::after {
+  content: 'PAGE BOUNDARY — blocks can continue below this line';
+  position: absolute;
+  top: var(--page-height, 680px);
+  right: 0;
+  left: 0;
+  z-index: 0;
+  border-top: 1px dashed #e39a72;
+  padding-top: 6px;
+  color: #c77952;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .05em;
+  text-align: right;
+  pointer-events: none;
+}
+
+.blank-resume-placeholder {
+  max-width: 280px;
+  margin: 170px auto 0;
+  color: #8998a9;
+  text-align: center;
+}
+
+.blank-resume-placeholder > span {
+  width: 42px;
+  height: 42px;
+  display: grid;
+  place-items: center;
+  border: 1px dashed #0e9c8e;
+  border-radius: 50%;
+  margin: 0 auto 14px;
+  color: #0e9c8e;
+  font-size: 22px;
+}
+
+.blank-resume-placeholder h1 {
+  margin: 0 0 7px;
+  color: #26374b;
+  font-size: 15px;
+}
+
+.blank-resume-placeholder p {
+  margin: 0 0 16px;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
+.blank-resume-placeholder small {
+  display: block;
+  color: #a2afbd;
+  font-size: 9px;
+}
+
+.blank-resume-placeholder textarea {
+  width: 100%;
+  min-height: 90px;
+  resize: vertical;
+  border: 1px solid #dbe5e8;
+  border-radius: 7px;
+  padding: 9px;
+  outline: 0;
+  color: #43536a;
+  background: #fbfcfd;
+  font: inherit;
+  font-size: 10px;
+}
+
+.blank-resume-placeholder textarea:focus {
+  border-color: #80cfc4;
+  box-shadow: 0 0 0 3px rgba(14,156,142,.1);
+}
+
+.blank-resume-placeholder button {
+  min-height: 31px;
+  border: 0;
+  border-radius: 7px;
+  padding: 0 12px;
+  color: #fff;
+  background: #0e9c8e;
+  font-size: 9px;
+  font-weight: 750;
+}
+
+.custom-paper-section {
+  position: relative;
+  z-index: 3;
+  min-height: 90px;
+  min-width: 120px;
+  border: 1px dashed #b8dcd7;
+  background: #fbfefe;
+  resize: none;
+  overflow: visible;
+  cursor: grab;
+}
+
+.custom-paper-section:active {
+  cursor: grabbing;
+}
+
+.photo-paper-section {
+  min-height: 150px;
+  width: 180px;
+  display: grid;
+  place-items: center;
+  resize: none;
+  z-index: 2;
+  cursor: move;
+  touch-action: none;
+  user-select: none;
+  margin: 0;
+}
+
+.resume-profile-photo {
+  width: 120px;
+  height: 140px;
+  display: block;
+  border-radius: 5px;
+  object-fit: cover;
+}
+
+.photo-placeholder {
+  min-height: 34px;
+  border: 1px dashed #0e9c8e;
+  border-radius: 7px;
+  padding: 0 11px;
+  color: #078e83;
+  background: #effaf8;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.custom-paper-section textarea {
+  width: 100%;
+  min-height: 45px;
+  border: 0;
+  padding: 3px 0;
+  resize: vertical;
+  outline: 0;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+  font-size: 1em;
+  line-height: 1.55;
+}
+
+.freeform-text-block {
+  position: relative;
+  z-index: 3;
+  min-height: 80px;
+  min-width: 120px;
+  margin: 12px 0;
+  padding: 10px;
+  border: 1px dashed #b8dcd7;
+  border-radius: 5px;
+  background: #fff;
+  cursor: grab;
+  resize: none;
+  overflow: visible;
+}
+
+.freeform-text-block textarea {
+  width: 100%;
+  min-height: 55px;
+  border: 0;
+  outline: 0;
+  resize: none;
+  color: inherit;
+  background: transparent;
+  font: inherit;
+}
+
+.freeform-text-editor {
+  min-width: 0;
+  min-height: 55px;
+  outline: 0;
+  color: inherit;
+  font: inherit;
+  line-height: 1.5;
+  white-space: pre-wrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+}
+
+.freeform-text-editor:empty::before {
+  content: attr(data-placeholder);
+  color: #9aa7b6;
+  pointer-events: none;
+}
+
+.freeform-text-block--heading {
+  min-height: 58px;
+}
+
+.freeform-text-block--heading .freeform-text-editor {
+  color: #26374b;
+  font-size: 1.35em;
+  font-weight: 750;
+}
+
+.freeform-text-block--bullet .freeform-text-editor {
+  padding-left: 22px;
+}
+
+.freeform-text-block--bullet .freeform-text-editor::before {
+  content: '• ';
+  color: #0e9c8e;
+}
+
+.freeform-text-block--divider {
+  min-height: 30px;
+  padding: 12px 10px;
+}
+
+.freeform-text-block--divider hr {
+  border: 0;
+  border-top: 2px solid #a7e3da;
+  margin: 5px 0;
+}
+
+.resize-handle {
+  position: absolute;
+  z-index: 3;
+  width: 9px;
+  height: 9px;
+  border: 1px solid #0e9c8e;
+  border-radius: 2px;
+  padding: 0;
+  background: #fff;
+}
+
+.resize-handle--n,
+.resize-handle--s {
+  right: calc(50% - 4px);
+  left: calc(50% - 4px);
+  width: 9px;
+}
+
+.resize-handle--n { top: -5px; cursor: ns-resize; }
+.resize-handle--s { bottom: -5px; cursor: ns-resize; }
+.resize-handle--e,
+.resize-handle--w {
+  top: calc(50% - 4px);
+  width: 9px;
+  height: 9px;
+}
+
+.resize-handle--e { right: -5px; cursor: ew-resize; }
+.resize-handle--w { left: -5px; cursor: ew-resize; }
+.resize-handle--ne { top: -5px; right: -5px; cursor: nesw-resize; }
+.resize-handle--se { right: -5px; bottom: -5px; cursor: nwse-resize; }
+.resize-handle--sw { bottom: -5px; left: -5px; cursor: nesw-resize; }
+.resize-handle--nw { top: -5px; left: -5px; cursor: nwse-resize; }
+
+.delete-block-button {
+  width: 100%;
+  min-height: 30px;
+  border: 1px solid #efc9c3;
+  border-radius: 6px;
+  margin-top: 10px;
+  color: #b65349;
+  background: #fff7f5;
+  font-size: 9px;
+  font-weight: 750;
+}
+
+.delete-block-button:hover {
+  border-color: #d8786c;
+  background: #ffefeb;
+}
+
+.text-format-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin-top: 12px;
+}
+
+.text-format-button {
+  min-height: 29px;
+  border: 1px solid #d5e4e7;
+  border-radius: 6px;
+  padding: 0 8px;
+  color: #41516a;
+  background: #f8fafc;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.text-format-button:hover {
+  border-color: #0e9c8e;
+  color: #078e83;
+  background: #e8f9f6;
+}
+
+.text-format-toolbar > span {
+  color: #8a98a9;
+  font-size: 8px;
+  line-height: 1.3;
+}
+
+.typography-controls {
+  align-items: end;
+}
+
+.color-control {
+  min-height: 31px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid #e3e9ef;
+  border-radius: 6px;
+  margin-top: 5px;
+  padding: 3px 6px;
+  background: #fff;
+}
+
+.color-control input {
+  width: 22px;
+  height: 22px;
+  border: 0;
+  padding: 0;
+  background: transparent;
+  cursor: pointer;
+}
+
+.color-control code {
+  color: #708096;
+  font-family: inherit;
+  font-size: 8px;
 }
 
 .paper-personal {
@@ -412,6 +980,7 @@
 @media print {
   .app-header,
   .editor-toolbar,
+  .editor-pages-bar,
   .editor-sections-panel,
   .editor-format-panel {
     display: none !important;
@@ -425,11 +994,47 @@
     margin: 0;
     padding: 0;
     background: white;
+    overflow: visible;
   }
 
   .resume-paper {
     width: 100%;
+    min-height: 0;
     border: 0;
     box-shadow: none;
+  }
+
+  .resume-paper--blank {
+    width: 100%;
+    min-height: var(--page-height, 680px);
+    padding: 45px;
+    overflow: visible;
+  }
+
+  .resume-paper--blank::after,
+  .resume-paper--blank::before,
+  .resize-handle,
+  .paper-section-title > span {
+    display: none !important;
+  }
+
+  .freeform-page-editor,
+  .custom-paper-section,
+  .freeform-text-block {
+    outline: 0 !important;
+    border-color: transparent !important;
+    background: transparent !important;
+  }
+
+  .paper-section-active {
+    outline: 0 !important;
+  }
+
+  .photo-paper-section {
+    border: 0 !important;
+  }
+
+  .freeform-page-editor {
+    min-height: 0;
   }
 }
