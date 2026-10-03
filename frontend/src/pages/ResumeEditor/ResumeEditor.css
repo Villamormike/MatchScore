@@ -1,0 +1,435 @@
+.resume-editor-page {
+  width: 100%;
+  margin-top: -12px;
+}
+
+.editor-toolbar {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  padding: 0 2px 11px;
+  border-bottom: 1px solid #e6ebf0;
+}
+
+.editor-back {
+  width: 24px;
+  height: 30px;
+  border: 0;
+  padding: 0;
+  color: #52627a;
+  background: transparent;
+  font-size: 24px;
+}
+
+.editor-toolbar > strong {
+  color: #233047;
+  font-size: 11px;
+  white-space: nowrap;
+}
+
+.autosave-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #8392a5;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.autosave-status i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #16ad83;
+}
+
+.editor-toolbar-actions {
+  display: flex;
+  gap: 7px;
+  margin-left: auto;
+}
+
+.editor-toolbar-actions .action-button {
+  min-height: 31px;
+  padding: 0 10px;
+  font-size: 9px;
+  white-space: nowrap;
+}
+
+.editor-workspace {
+  min-height: 620px;
+  display: grid;
+  grid-template-columns: 185px minmax(0, 1fr) 210px;
+  margin: 0 -4vw;
+  background: #f6f8fb;
+}
+
+.editor-sections-panel,
+.editor-format-panel {
+  padding: 18px 13px;
+  background: #fff;
+}
+
+.editor-sections-panel {
+  border-right: 1px solid #e7ecf1;
+}
+
+.editor-format-panel {
+  border-left: 1px solid #e7ecf1;
+}
+
+.editor-sections-panel h2,
+.editor-format-panel h2 {
+  margin: 0 0 13px;
+  color: #28364b;
+  font-size: 9px;
+  font-weight: 800;
+}
+
+.editor-section-row {
+  min-height: 34px;
+  display: flex;
+  align-items: center;
+  border: 1px solid #e8edf2;
+  border-radius: 7px;
+  margin-bottom: 6px;
+  background: #fff;
+}
+
+.editor-section-row.is-active {
+  border-color: #0e9c8e;
+  background: #f0fbf9;
+}
+
+.editor-section-row > button:first-child {
+  min-width: 0;
+  flex: 1;
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  border: 0;
+  padding: 0 7px;
+  color: #384860;
+  background: transparent;
+  text-align: left;
+  font-size: 9px;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.drag-handle {
+  color: #93a1b3;
+  font-size: 12px;
+}
+
+.visibility-toggle {
+  width: 25px;
+  height: 29px;
+  border: 0;
+  padding: 0;
+  color: #8997aa;
+  background: transparent;
+  font-size: 12px;
+}
+
+.visibility-toggle.is-hidden {
+  color: #cc7b57;
+}
+
+.add-section-button {
+  width: 100%;
+  min-height: 32px;
+  border: 1px dashed #dce4eb;
+  border-radius: 7px;
+  margin-top: 4px;
+  color: #66768c;
+  background: white;
+  font-size: 9px;
+  font-weight: 650;
+}
+
+.resume-canvas {
+  min-width: 0;
+  padding: 30px 25px;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  overflow: auto;
+}
+
+.resume-paper {
+  width: min(100%, 600px);
+  min-height: 480px;
+  padding: 31px 37px;
+  border: 1px solid #e8edf2;
+  background: white;
+  box-shadow: 0 5px 20px rgba(25,45,70,.06);
+  color: #35445b;
+  font-size: 11pt;
+}
+
+.paper-personal {
+  border-radius: 5px;
+  padding: 4px 6px 9px;
+  text-align: center;
+  cursor: pointer;
+}
+
+.paper-personal h1 {
+  margin: 0 0 5px;
+  color: #172238;
+  font-size: 1.5em;
+  line-height: 1.2;
+  letter-spacing: .02em;
+}
+
+.paper-personal p {
+  color: #708096;
+  font-size: .75em;
+}
+
+.paper-section {
+  border-radius: 5px;
+  margin-top: 10px;
+  padding: 5px 6px;
+  cursor: pointer;
+}
+
+.paper-section-active {
+  outline: 1px dashed #0e9c8e;
+  background: rgba(235, 250, 247, .52);
+}
+
+.paper-section h2 {
+  margin: 0 0 6px;
+  padding-bottom: 4px;
+  border-bottom: 1px solid #a7e3da;
+  color: #098b80;
+  font-size: .82em;
+  font-weight: 800;
+}
+
+.paper-section p {
+  margin: 0;
+  color: #43536a;
+  font-size: .78em;
+  line-height: 1.55;
+}
+
+.paper-section-title {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.paper-section-title h2 {
+  flex: 1;
+}
+
+.paper-section-title > span {
+  padding: 3px 5px;
+  border-radius: 3px;
+  margin-bottom: 6px;
+  color: #fff;
+  background: #0e9c8e;
+  font-size: 7px;
+  font-weight: 800;
+}
+
+.paper-job-line {
+  display: flex;
+  justify-content: space-between;
+  gap: 10px;
+  margin: 3px 0;
+  color: #35445b;
+  font-size: .76em;
+}
+
+.paper-job-line span {
+  color: #8190a3;
+  white-space: nowrap;
+}
+
+.paper-section textarea {
+  width: 100%;
+  min-height: 72px;
+  border: 0;
+  padding: 0;
+  outline: 0;
+  resize: vertical;
+  color: #43536a;
+  background: transparent;
+  font: inherit;
+  font-size: .75em;
+  line-height: 1.5;
+}
+
+.paper-compact {
+  margin-top: 5px;
+}
+
+.editor-format-panel > label,
+.format-controls label {
+  display: block;
+  color: #64748a;
+  font-size: 9px;
+}
+
+.editor-format-panel select {
+  width: 100%;
+  min-height: 31px;
+  display: block;
+  border: 1px solid #e3e9ef;
+  border-radius: 6px;
+  margin-top: 5px;
+  padding: 0 7px;
+  color: #41516a;
+  background: #fff;
+  font-size: 9px;
+}
+
+.format-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  margin-top: 12px;
+}
+
+.editor-ai-card {
+  padding: 11px;
+  border: 1px solid #d4f1ec;
+  border-radius: 9px;
+  margin-top: 17px;
+  background: #effaf8;
+}
+
+.editor-ai-card h3 {
+  margin: 0 0 6px;
+  color: #078d81;
+  font-size: 10px;
+}
+
+.editor-ai-card p {
+  margin: 0;
+  color: #52657d;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.editor-ai-card button {
+  min-height: 26px;
+  border: 0;
+  border-radius: 6px;
+  margin-top: 9px;
+  padding: 0 9px;
+  color: #fff;
+  background: #0e9c8e;
+  font-size: 8px;
+  font-weight: 750;
+}
+
+@media (max-width: 900px) {
+  .editor-workspace {
+    grid-template-columns: 160px minmax(0, 1fr);
+  }
+
+  .editor-format-panel {
+    grid-column: 1 / -1;
+    display: grid;
+    grid-template-columns: 1fr 1fr 1.2fr;
+    align-items: start;
+    gap: 12px;
+    border-top: 1px solid #e7ecf1;
+    border-left: 0;
+  }
+
+  .editor-format-panel h2 {
+    grid-column: 1 / -1;
+    margin-bottom: -3px;
+  }
+
+  .format-controls {
+    margin-top: 0;
+  }
+
+  .editor-ai-card {
+    margin-top: 0;
+  }
+}
+
+@media (max-width: 620px) {
+  .editor-toolbar {
+    flex-wrap: wrap;
+  }
+
+  .editor-toolbar-actions {
+    width: 100%;
+    margin-left: 35px;
+  }
+
+  .editor-workspace {
+    grid-template-columns: 1fr;
+    margin-inline: -16px;
+  }
+
+  .editor-sections-panel {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 5px;
+    border-right: 0;
+    border-bottom: 1px solid #e7ecf1;
+  }
+
+  .editor-sections-panel h2,
+  .add-section-button {
+    grid-column: 1 / -1;
+  }
+
+  .editor-section-row {
+    margin: 0;
+  }
+
+  .resume-canvas {
+    padding: 18px 12px;
+  }
+
+  .resume-paper {
+    min-height: 450px;
+    padding: 24px 20px;
+  }
+
+  .editor-format-panel {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .editor-ai-card {
+    grid-column: 1 / -1;
+  }
+}
+
+@media print {
+  .app-header,
+  .editor-toolbar,
+  .editor-sections-panel,
+  .editor-format-panel {
+    display: none !important;
+  }
+
+  .page-content,
+  .resume-editor-page,
+  .editor-workspace,
+  .resume-canvas {
+    width: 100%;
+    margin: 0;
+    padding: 0;
+    background: white;
+  }
+
+  .resume-paper {
+    width: 100%;
+    border: 0;
+    box-shadow: none;
+  }
+}

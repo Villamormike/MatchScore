@@ -1,0 +1,237 @@
+.login-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1.05fr .95fr;
+  background: #f7f9fc;
+}
+
+.login-story {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  padding: 40px clamp(28px, 8vw, 100px) 30px;
+  color: #fff;
+  background: #11786f;
+}
+
+.login-brand {
+  width: fit-content;
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  border: 0;
+  padding: 0;
+  color: #fff;
+  background: transparent;
+  font-size: 16px;
+  font-weight: 800;
+}
+
+.brand-mark--light {
+  background: rgba(255,255,255,.95);
+}
+
+.brand-mark--light::before,
+.brand-mark--light span {
+  border-color: #118d80;
+}
+
+.login-story-center {
+  width: min(100%, 460px);
+  margin: auto;
+  text-align: center;
+}
+
+.overlap-card {
+  max-width: 280px;
+  margin: 0 auto 25px;
+  padding: 26px 22px 17px;
+  border-radius: 16px;
+  background: rgba(5, 84, 79, .63);
+  text-align: left;
+}
+
+.overlap-circles {
+  height: 74px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 17px;
+}
+
+.overlap-circles span {
+  width: 68px;
+  height: 68px;
+  display: grid;
+  place-items: center;
+  border: 1.5px solid #fff;
+  border-radius: 50%;
+  background: rgba(20, 169, 150, .55);
+  font-size: 9px;
+  font-weight: 750;
+}
+
+.overlap-circles span + span {
+  margin-left: -17px;
+}
+
+.overlap-row {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 9px 0;
+  border-top: 1px solid rgba(255,255,255,.12);
+  color: #b6e0d9;
+  font-size: 10px;
+}
+
+.overlap-row strong {
+  color: #fff;
+}
+
+.login-story-center h1 {
+  margin: 0 0 9px;
+  font-size: clamp(27px, 3vw, 36px);
+  letter-spacing: -1px;
+}
+
+.login-story-center p {
+  max-width: 380px;
+  margin: 0 auto;
+  color: #d6eeea;
+  font-size: 13px;
+  line-height: 1.6;
+}
+
+.login-story-footer {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  color: #d2eae5;
+  font-size: 9px;
+}
+
+.login-form-side {
+  min-height: 100vh;
+  padding: 40px;
+  display: grid;
+  place-items: center;
+}
+
+.login-form {
+  width: min(100%, 370px);
+}
+
+.login-form-heading {
+  margin-bottom: 25px;
+}
+
+.login-form-heading h2 {
+  margin: 0 0 5px;
+  color: #172238;
+  font-size: 25px;
+  letter-spacing: -.6px;
+}
+
+.login-form-heading p {
+  color: #718096;
+  font-size: 12px;
+  line-height: 1.55;
+}
+
+.login-field {
+  display: block;
+  margin-bottom: 15px;
+  color: #253249;
+  font-size: 10px;
+  font-weight: 700;
+}
+
+.login-input-wrap {
+  height: 42px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  padding: 0 11px;
+  border: 1px solid #dfe6ee;
+  border-radius: 8px;
+  margin-top: 7px;
+  background: #fff;
+  color: #97a5b6;
+}
+
+.login-input-wrap input {
+  flex: 1;
+  min-width: 0;
+  border: 0;
+  outline: none;
+  background: transparent;
+  color: #42516a;
+  font-size: 11px;
+}
+
+.password-label {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.password-label .text-link {
+  font-size: 10px;
+}
+
+.login-message {
+  margin: -3px 0 11px;
+  color: #098d82;
+  font-size: 10px;
+}
+
+.login-submit,
+.login-google {
+  width: 100%;
+  margin-top: 7px;
+}
+
+.login-google {
+  min-height: 38px;
+  margin-top: 9px;
+}
+
+.login-signup {
+  margin-top: 20px;
+  color: #79879a;
+  font-size: 10px;
+  text-align: center;
+}
+
+.login-signup .text-link {
+  font-size: 10px;
+}
+
+@media (max-width: 760px) {
+  .login-page {
+    grid-template-columns: 1fr;
+  }
+
+  .login-story {
+    min-height: 350px;
+    padding: 24px;
+  }
+
+  .login-story-center {
+    margin: 35px auto;
+  }
+
+  .overlap-card {
+    display: none;
+  }
+
+  .login-story-footer {
+    font-size: 8px;
+  }
+
+  .login-form-side {
+    min-height: auto;
+    padding: 40px 24px 60px;
+  }
+}

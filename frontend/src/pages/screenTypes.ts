@@ -1,0 +1,10 @@
+export type ScreenKey =
+  | 'home'
+  | 'login'
+  | 'dashboard'
+  | 'templates'
+  | 'jobMatches'
+  | 'matchResults'
+  | 'recommendations'
+  | 'scoreHistory'
+  | 'resumeEditor'

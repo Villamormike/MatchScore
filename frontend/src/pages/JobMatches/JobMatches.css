@@ -1,0 +1,211 @@
+.job-match-layout {
+  display: grid;
+  grid-template-columns: minmax(250px, .82fr) minmax(0, 1.7fr);
+  gap: 22px;
+  align-items: start;
+}
+
+.selected-document-column h2,
+.job-description-heading h2 {
+  margin: 0 0 12px;
+  color: #1c293e;
+  font-size: 13px;
+  letter-spacing: -.2px;
+}
+
+.selected-resume-card {
+  position: relative;
+  padding: 17px;
+}
+
+.resume-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.resume-card-top small {
+  color: #98a5b6;
+  font-size: 9px;
+}
+
+.selected-resume-card h3 {
+  margin: 13px 0 4px;
+  color: #202c41;
+  font-size: 12px;
+}
+
+.resume-template-name {
+  margin: 0;
+  color: #098f82;
+  font-size: 10px;
+}
+
+.resume-card-rule {
+  height: 1px;
+  margin: 13px 0;
+  background: #e9eef3;
+}
+
+.selected-resume-card .eyebrow {
+  font-size: 8px;
+}
+
+.resume-summary,
+.resume-skills {
+  margin: 4px 0 10px;
+  color: #53647c;
+  font-size: 9px;
+  line-height: 1.5;
+}
+
+.change-document-button {
+  width: 100%;
+  min-height: 33px;
+  margin-top: 5px;
+  font-size: 10px;
+}
+
+.resume-options {
+  display: grid;
+  gap: 4px;
+  padding: 6px;
+  border: 1px solid #e5ebf1;
+  border-radius: 8px;
+  margin-top: 8px;
+  background: #fff;
+}
+
+.resume-options button {
+  border: 0;
+  border-radius: 5px;
+  padding: 8px;
+  color: #52627a;
+  background: transparent;
+  text-align: left;
+  font-size: 10px;
+}
+
+.resume-options button:hover,
+.resume-options button.is-current {
+  color: #078f83;
+  background: #edfaf7;
+}
+
+.job-description-heading {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.job-description-heading .text-link {
+  margin-bottom: 12px;
+  font-size: 10px;
+}
+
+.job-description-card {
+  padding: 18px;
+}
+
+.job-description-card textarea {
+  width: 100%;
+  min-height: 285px;
+  display: block;
+  resize: vertical;
+  border: 1px solid #e3eaf1;
+  border-radius: 8px;
+  padding: 13px;
+  outline: none;
+  color: #42516a;
+  background: #fbfcfe;
+  font-size: 11px;
+  line-height: 1.6;
+}
+
+.job-description-card textarea:focus {
+  border-color: #80cfc4;
+  box-shadow: 0 0 0 3px rgba(14,156,142,.1);
+}
+
+.job-description-card textarea::placeholder {
+  color: #a2aebe;
+}
+
+.description-bottom {
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 8px 2px 13px;
+  color: #97a4b5;
+  font-size: 9px;
+}
+
+.description-bottom span {
+  color: #078e82;
+}
+
+.description-bottom .length-error,
+.description-error {
+  color: #cf5960;
+}
+
+.description-error {
+  margin: -7px 0 12px;
+  font-size: 10px;
+}
+
+.score-button-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid #edf1f5;
+  padding-top: 13px;
+}
+
+.algorithm-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  padding: 7px 9px;
+  border-radius: 6px;
+  color: #078d82;
+  background: #eefaf8;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.algorithm-label span {
+  font-size: 14px;
+}
+
+.score-button--waiting {
+  background: #6ab8b0;
+  box-shadow: none;
+}
+
+.score-button--waiting:hover {
+  background: #53a79e;
+}
+
+@media (max-width: 760px) {
+  .job-match-layout {
+    grid-template-columns: 1fr;
+  }
+
+  .job-description-card textarea {
+    min-height: 220px;
+  }
+}
+
+@media (max-width: 500px) {
+  .score-button-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .score-button-row .action-button {
+    width: 100%;
+  }
+}

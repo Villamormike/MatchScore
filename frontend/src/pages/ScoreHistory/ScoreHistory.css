@@ -1,0 +1,181 @@
+.history-heading {
+  align-items: center;
+}
+
+.history-ranges {
+  display: flex;
+  gap: 3px;
+  padding: 3px;
+  border: 1px solid #e3e9f0;
+  border-radius: 8px;
+  background: #fff;
+}
+
+.history-ranges button {
+  min-height: 29px;
+  border: 0;
+  border-radius: 6px;
+  padding: 0 12px;
+  color: #617087;
+  background: transparent;
+  font-size: 9px;
+  font-weight: 700;
+  white-space: nowrap;
+}
+
+.history-ranges button.is-active {
+  color: #fff;
+  background: #0e9c8e;
+}
+
+.trend-card {
+  padding: 18px 19px 14px;
+}
+
+.trend-card-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.trend-card-heading h2,
+.scoring-log-section h2 {
+  margin: 0 0 3px;
+  color: #1d2a40;
+  font-size: 13px;
+}
+
+.trend-card-heading p {
+  margin: 0;
+  color: #92a0b1;
+  font-size: 9px;
+}
+
+.trend-card-heading > span {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  color: #75849a;
+  font-size: 9px;
+}
+
+.trend-card-heading i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #0e9c8e;
+}
+
+.score-chart {
+  width: 100%;
+  height: 220px;
+  display: block;
+  overflow: visible;
+  margin-top: 9px;
+}
+
+.chart-grid-line {
+  stroke: #e8edf2;
+  stroke-dasharray: 3 4;
+  stroke-width: 1;
+}
+
+.chart-line {
+  fill: none;
+  stroke: #0e9c8e;
+  stroke-width: 2.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  vector-effect: non-scaling-stroke;
+  transition: d .25s ease;
+}
+
+.chart-dot {
+  fill: #fff;
+  stroke: #0e9c8e;
+  stroke-width: 2;
+  vector-effect: non-scaling-stroke;
+}
+
+.chart-axis-labels {
+  display: flex;
+  justify-content: space-between;
+  padding: 1px 1px 0;
+  color: #94a1b2;
+  font-size: 8px;
+}
+
+.scoring-log-section {
+  margin-top: 24px;
+}
+
+.scoring-log-section h2 {
+  margin-bottom: 11px;
+}
+
+.table-wrap {
+  overflow-x: auto;
+}
+
+.scoring-table {
+  width: 100%;
+  border-collapse: collapse;
+  text-align: left;
+  white-space: nowrap;
+}
+
+.scoring-table th {
+  padding: 11px 14px;
+  border-bottom: 1px solid #e8edf2;
+  color: #68788e;
+  background: #fbfcfd;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .045em;
+  text-transform: uppercase;
+}
+
+.scoring-table td {
+  padding: 11px 14px;
+  border-bottom: 1px solid #edf1f5;
+  color: #78879b;
+  font-size: 9px;
+}
+
+.scoring-table tr:last-child td {
+  border-bottom: 0;
+}
+
+.scoring-table td strong {
+  color: #263349;
+  font-size: 9px;
+}
+
+.scoring-table .match-pill {
+  min-width: 77px;
+  justify-content: center;
+  font-size: 8px;
+}
+
+.scoring-table .text-link {
+  font-size: 9px;
+  text-decoration: underline;
+  text-underline-offset: 2px;
+}
+
+@media (max-width: 720px) {
+  .history-ranges {
+    width: 100%;
+  }
+
+  .history-ranges button {
+    flex: 1;
+    padding-inline: 6px;
+    font-size: 8px;
+  }
+
+  .score-chart {
+    height: 160px;
+  }
+}
