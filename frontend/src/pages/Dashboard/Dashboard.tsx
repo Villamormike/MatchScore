@@ -1,47 +1,57 @@
 import './Dashboard.css'
-import type { ScreenKey } from '../screenTypes'
+import type { ScreenKey, ScoreResult } from '../screenTypes'
 
-type Props = { onNavigate: (screen: ScreenKey) => void }
+type Props = {
+  recentScores?: ScoreResult[]
+  onNavigate: (screen: ScreenKey) => void
+  onSelectScore?: (item: ScoreResult) => void
+  userName?: string
+}
 
-const documents = [
-  { kind: 'RESUME', name: 'Alex Mercer - Frontend Dev', detail: 'Edited 2 hours ago', score: '89%', color: 'green', note: 'Modern Layout — Single Column' },
-  { kind: 'PORTFOLIO', name: 'Alex Mercer - UX Portfolio', detail: 'Edited Yesterday', score: '72%', color: 'amber', note: 'Creative Portfolio — Case Studies' },
-]
+function Dashboard({ recentScores, onNavigate, onSelectScore, userName = 'there' }: Props) {
+  const matches = (recentScores && recentScores.length > 0)
+    ? recentScores.slice(0, 4).map((s) => ({
+        raw: s,
+        title: s.job_title || s.role,
+        company: s.company || 'Unknown company',
+        date: s.date || 'Recently',
+        score: s.score || `${s.overall_score}%`,
+        color: s.color || 'green'
+      }))
+    : []
 
-const matches = [
-  { title: 'Junior Web Developer', company: 'Linear', date: 'Today', score: '86%', color: 'green' },
-  { title: 'Frontend Engineer Intern', company: 'Vercel', date: 'Yesterday', score: '79%', color: 'amber' },
-  { title: 'Associate Software Engineer', company: 'Figma', date: '3 days ago', score: '64%', color: 'rose' },
-]
+  const scoreCount = recentScores?.length || 0
+  const averageScore = scoreCount
+    ? Math.round((recentScores || []).reduce((total, score) => total + score.overall_score, 0) / scoreCount)
+    : 0
 
-function Dashboard({ onNavigate }: Props) {
   return (
     <div className="dashboard-page">
       <section className="page-heading dashboard-heading">
         <div>
-          <h1>Welcome back, Alex!</h1>
-          <p>Optimize your resume performance. Your average match score is up 4% this week.</p>
+          <h1>Welcome back, {userName}!</h1>
+          <p>Optimize your resume performance. Real-time deterministic matching engine is active.</p>
         </div>
-        <button className="action-button action-primary" type="button" onClick={() => onNavigate('templates')}>
-          <span aria-hidden="true">＋</span> Create New Resume
+        <button className="action-button action-primary" type="button" onClick={() => onNavigate('jobMatches')}>
+          <span aria-hidden="true">◉</span> Score A Resume
         </button>
       </section>
 
       <section className="dashboard-stats" aria-label="Resume statistics">
         <article className="surface stat-card">
           <div className="stat-label">TOTAL DOCUMENTS <span className="stat-icon">▤</span></div>
-          <strong>8 Active</strong>
-          <small>5 Resumes, 3 Portfolios</small>
+          <strong>0 Active</strong>
+          <small>Your uploaded documents will appear here.</small>
         </article>
         <article className="surface stat-card">
           <div className="stat-label">AVG. COSINE MATCH <span className="stat-icon">◉</span></div>
-          <strong>81.4%</strong>
-          <small>Top score: 92% against Figma</small>
+          <strong>{averageScore}%</strong>
+          <small>{scoreCount ? 'Based on your score history.' : 'Score a resume to see your average.'}</small>
         </article>
         <article className="surface stat-card">
           <div className="stat-label">JOB POSTINGS SCORED <span className="stat-icon">▣</span></div>
-          <strong>14 Checked</strong>
-          <small>4 added this week</small>
+          <strong>{scoreCount} Checked</strong>
+          <small>Your completed resume scans.</small>
         </article>
       </section>
 
@@ -49,25 +59,12 @@ function Dashboard({ onNavigate }: Props) {
         <div className="documents-column">
           <div className="section-title-row">
             <h2>My Documents</h2>
-            <button className="text-link" type="button" onClick={() => onNavigate('templates')}>View all (8)</button>
+            <button className="text-link" type="button" onClick={() => onNavigate('templates')}>Add a document</button>
           </div>
-          <div className="document-grid">
-            {documents.map((document) => (
-              <article className="surface document-card" key={document.name}>
-                <div className="document-card-top">
-                  <span className="document-kind">{document.kind}</span>
-                  <span className={`match-pill match-pill--${document.color}`}>◉ {document.score} Match</span>
-                </div>
-                <h3>{document.name}</h3>
-                <p className="document-note">{document.note}</p>
-                <p className="document-time">{document.detail}</p>
-                <div className="document-actions">
-                  <button className="action-button action-outline" type="button" onClick={() => onNavigate('resumeEditor')}>⌁ &nbsp; Edit</button>
-                  <button className="action-button action-soft" type="button" onClick={() => onNavigate('jobMatches')}>◉ &nbsp; Score</button>
-                  <button className="more-button" type="button" aria-label={`More options for ${document.name}`} onClick={() => onNavigate('scoreHistory')}>···</button>
-                </div>
-              </article>
-            ))}
+          <div className="surface document-card">
+            <h3>No documents yet</h3>
+            <p className="document-note">Create or upload a resume to start building your personal workspace.</p>
+            <button className="action-button action-primary" type="button" onClick={() => onNavigate('templates')}>Add your first document</button>
           </div>
           <button className="history-link" type="button" onClick={() => onNavigate('scoreHistory')}>
             View your score history <span aria-hidden="true">→</span>
@@ -77,12 +74,26 @@ function Dashboard({ onNavigate }: Props) {
         <aside className="recent-column">
           <div className="section-title-row"><h2>Recent Job Matches</h2></div>
           <div className="recent-match-list">
-            {matches.map((match) => (
-              <button className="surface recent-match" key={match.title} type="button" onClick={() => onNavigate('matchResults')}>
-                <span className="recent-match-copy"><strong>{match.title}</strong><small>{match.company} &nbsp;·&nbsp; {match.date}</small></span>
+            {matches.length ? matches.map((match, i) => (
+              <button
+                className="surface recent-match"
+                key={`${match.title}-${i}`}
+                type="button"
+                onClick={() => {
+                  if (match.raw && onSelectScore) {
+                    onSelectScore(match.raw)
+                  } else {
+                    onNavigate('matchResults')
+                  }
+                }}
+              >
+                <span className="recent-match-copy">
+                  <strong>{match.title}</strong>
+                  <small>{match.company} &nbsp;·&nbsp; {match.date}</small>
+                </span>
                 <span className={`match-pill match-pill--${match.color}`}>◉ {match.score} Match</span>
               </button>
-            ))}
+            )) : <div className="surface document-card"><h3>No job matches yet</h3><p className="document-note">Score a resume against a job posting to see your results here.</p></div>}
           </div>
           <button className="feedback-banner" type="button" onClick={() => onNavigate('recommendations')}>
             <span className="feedback-spark" aria-hidden="true">✧</span>

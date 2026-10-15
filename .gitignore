@@ -3,6 +3,13 @@ backend/__pycache__/
 frontend/node_modules/
 frontend/dist/
 *.py[cod]
+
+# Database & Environment Secrets
 .env
 .env.*
+*.env
 !.env.example
+supabase_links.txt
+supabase_schema.txt
+supabase/credentials.txt
+supabase/.env

@@ -1,5 +1,7 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
+import type { User } from '@supabase/supabase-js'
 import './App.css'
+import { supabase } from './supabaseClient'
 import AIRecommendations from './pages/AIRecommendations/AIRecommendations'
 import Dashboard from './pages/Dashboard/Dashboard'
 import Home from './pages/Home/Home'
@@ -9,7 +11,7 @@ import MatchResults from './pages/MatchResults/MatchResults'
 import ResumeEditor from './pages/ResumeEditor/ResumeEditor'
 import ScoreHistory from './pages/ScoreHistory/ScoreHistory'
 import Templates from './pages/Templates/Templates'
-import type { ScreenKey } from './pages/screenTypes'
+import type { ScreenKey, ScoreResult, UploadedDocument } from './pages/screenTypes'
 
 const navigation: { label: string; screen: ScreenKey }[] = [
   { label: 'Dashboard', screen: 'dashboard' },
@@ -18,8 +20,10 @@ const navigation: { label: string; screen: ScreenKey }[] = [
   { label: 'Feedback', screen: 'recommendations' },
 ]
 
-function AppHeader({ screen, onNavigate }: { screen: ScreenKey; onNavigate: (screen: ScreenKey) => void }) {
+function AppHeader({ screen, user, onNavigate, onSignOut }: { screen: ScreenKey; user: User; onNavigate: (screen: ScreenKey) => void; onSignOut: () => void }) {
   const activeNav = screen === 'resumeEditor' ? 'templates' : screen === 'matchResults' ? 'jobMatches' : screen === 'scoreHistory' ? 'dashboard' : screen
+  const email = user.email || 'Account'
+  const initials = email.slice(0, 2).toUpperCase()
 
   return (
     <header className="app-header">
@@ -48,9 +52,9 @@ function AppHeader({ screen, onNavigate }: { screen: ScreenKey; onNavigate: (scr
           <span aria-hidden="true">♧</span>
           <i />
         </button>
-        <button className="profile-button" type="button" onClick={() => onNavigate('login')} aria-label="Open account">
-          <span className="avatar">AM</span>
-          <span className="profile-name">Alex Mercer</span>
+        <button className="profile-button" type="button" onClick={onSignOut} aria-label={`Sign out ${email}`}>
+          <span className="avatar">{initials}</span>
+          <span className="profile-name">{email}</span>
         </button>
       </div>
     </header>
@@ -59,6 +63,24 @@ function AppHeader({ screen, onNavigate }: { screen: ScreenKey; onNavigate: (scr
 
 function App() {
   const [screen, setScreen] = useState<ScreenKey>('home')
+  const [user, setUser] = useState<User | null>(null)
+  const [uploadedDocument, setUploadedDocument] = useState<UploadedDocument | null>(null)
+  const [activeScoreResult, setActiveScoreResult] = useState<ScoreResult | null>(null)
+  const [scoreHistory, setScoreHistory] = useState<ScoreResult[]>([])
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data }) => {
+      setUser(data.session?.user || null)
+      if (data.session) setScreen('dashboard')
+    })
+
+    const { data: authListener } = supabase.auth.onAuthStateChange((_event, session) => {
+      setUser(session?.user || null)
+      if (!session) setScreen('home')
+    })
+
+    return () => authListener.subscription.unsubscribe()
+  }, [])
 
   if (screen === 'home') {
     return <Home onGetStarted={() => setScreen('login')} onSignIn={() => setScreen('login')} />
@@ -67,28 +89,56 @@ function App() {
     return <Login onSignIn={() => setScreen('dashboard')} />
   }
 
+  if (!user) {
+    return <Home onGetStarted={() => setScreen('login')} onSignIn={() => setScreen('login')} />
+  }
+
+  const handleScored = (result: ScoreResult) => {
+    setActiveScoreResult(result)
+    setScoreHistory((prev) => [result, ...prev.filter((item) => item.id !== result.id)])
+    setScreen('matchResults')
+  }
+
   const renderScreen = () => {
     switch (screen) {
       case 'dashboard':
-        return <Dashboard onNavigate={setScreen} />
+        return (
+          <Dashboard
+            recentScores={scoreHistory}
+            userName={user.email?.split('@')[0] || 'there'}
+            onNavigate={setScreen}
+            onSelectScore={(selected) => {
+              setActiveScoreResult(selected)
+              setScreen('matchResults')
+            }}
+          />
+        )
       case 'templates':
         return <Templates onNavigate={setScreen} />
       case 'jobMatches':
-        return <JobMatches onScore={() => setScreen('matchResults')} />
+        return <JobMatches onScore={handleScored} uploadedDocument={uploadedDocument} />
       case 'matchResults':
-        return <MatchResults onNavigate={setScreen} />
+        return <MatchResults result={activeScoreResult} onNavigate={setScreen} />
       case 'recommendations':
-        return <AIRecommendations />
+        return <AIRecommendations recommendations={activeScoreResult?.recommendations} />
       case 'scoreHistory':
-        return <ScoreHistory onViewDetails={() => setScreen('matchResults')} />
+        return (
+          <ScoreHistory
+            history={scoreHistory}
+            onViewDetails={(entry) => {
+              if (entry) setActiveScoreResult(entry)
+              setScreen('matchResults')
+            }}
+          />
+        )
       case 'resumeEditor':
-        return <ResumeEditor onNavigate={setScreen} />
+        return <ResumeEditor onNavigate={setScreen} onDocumentUploaded={setUploadedDocument} />
     }
   }
 
   return (
     <div className="app-shell">
-      <AppHeader screen={screen} onNavigate={setScreen} />
+      <AppHeader screen={screen} user={user} onNavigate={setScreen} onSignOut={() => supabase.auth.signOut()} />
       <main className="page-content" key={screen}>{renderScreen()}</main>
     </div>
   )

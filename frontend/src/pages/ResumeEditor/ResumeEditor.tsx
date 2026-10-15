@@ -1,59 +1,142 @@
-import { useState } from 'react'
+import { useRef, useState, type ChangeEvent } from 'react'
 import './ResumeEditor.css'
-import type { ScreenKey } from '../screenTypes'
+import type { ScreenKey, UploadedDocument } from '../screenTypes'
 
-const sections = ['Personal Info', 'Professional Summary', 'Work Experience', 'Skills Inventory', 'Education', 'Certifications']
-const originalExperience = '• Developed modular UI components using React and TypeScript, resulting in a 25% improvement in load times.\n• Collaborative developer integrated directly with design teams to enforce standard component libraries and design tokens across platforms.'
-const optimizedExperience = '• Developed modular, type-safe UI components using React and TypeScript, improving frontend load times by 25%.\n• Collaborated with design teams to standardize reusable component libraries and design tokens across platforms.'
-type Props = { onNavigate: (screen: ScreenKey) => void }
+type Props = {
+  onNavigate: (screen: ScreenKey) => void
+  onDocumentUploaded: (document: UploadedDocument) => void
+}
 
-function ResumeEditor({ onNavigate }: Props) {
-  const [activeSection, setActiveSection] = useState('Work Experience')
-  const [fontFamily, setFontFamily] = useState('Plus Jakarta Sans')
-  const [fontSize, setFontSize] = useState('11pt')
-  const [optimized, setOptimized] = useState(false)
-  const [hiddenSections, setHiddenSections] = useState<string[]>([])
-  const [experience, setExperience] = useState(originalExperience)
+const commands = [
+  { label: 'B', command: 'bold', title: 'Bold' },
+  { label: 'I', command: 'italic', title: 'Italic' },
+  { label: 'U', command: 'underline', title: 'Underline' },
+  { label: 'S', command: 'strikeThrough', title: 'Strikethrough' },
+] as const
 
-  const toggleSection = (section: string) => {
-    setHiddenSections((current) => current.includes(section) ? current.filter((item) => item !== section) : [...current, section])
+function ResumeEditor({ onNavigate, onDocumentUploaded }: Props) {
+  const editorRef = useRef<HTMLDivElement>(null)
+  const imageInputRef = useRef<HTMLInputElement>(null)
+  const documentInputRef = useRef<HTMLInputElement>(null)
+  const [documentName, setDocumentName] = useState('Untitled document')
+  const [saved, setSaved] = useState(true)
+  const [uploadError, setUploadError] = useState('')
+
+  const execute = (command: string, value?: string) => {
+    editorRef.current?.focus()
+    document.execCommand(command, false, value)
+    setSaved(false)
   }
 
-  const toggleOptimization = () => {
-    setExperience(optimized ? originalExperience : optimizedExperience)
-    setOptimized(!optimized)
+  const handleImage = (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    if (!file || !file.type.startsWith('image/')) return
+    const reader = new FileReader()
+    reader.onload = () => execute('insertImage', String(reader.result))
+    reader.readAsDataURL(file)
+    event.target.value = ''
+  }
+
+  const handleDocumentUpload = async (event: ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0]
+    event.target.value = ''
+    if (!file) return
+
+    setUploadError('')
+    const formData = new FormData()
+    formData.append('file', file)
+
+    try {
+      const response = await fetch('http://localhost:5000/api/upload-resume', {
+        method: 'POST',
+        body: formData,
+      })
+      const result = await response.json()
+      if (!response.ok || !result.success || !result.data?.text) {
+        throw new Error(result.error || 'The file could not be imported.')
+      }
+
+      if (editorRef.current) {
+        const lines = result.data.text.split(/\r?\n/)
+        editorRef.current.innerHTML = lines
+          .map((line: string) => line.trim() ? `<div>${line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>` : '<div><br></div>')
+          .join('')
+        editorRef.current.focus()
+      }
+      onDocumentUploaded(result.data)
+      setDocumentName(file.name.replace(/\.[^/.]+$/, ''))
+      setSaved(false)
+    } catch (error) {
+      setUploadError(error instanceof Error ? error.message : 'The file could not be imported.')
+    }
   }
 
   return (
     <div className="resume-editor-page">
       <div className="editor-toolbar">
         <button className="editor-back" type="button" onClick={() => onNavigate('templates')} aria-label="Back to templates">‹</button>
-        <strong>Alex_Mercer_JuniorDev_2026.docx</strong><span className="autosave-status"><i /> Autosaved to Cloud</span>
-        <div className="editor-toolbar-actions"><button className="action-button action-outline" type="button" onClick={() => window.print()}>♧ &nbsp; Export PDF</button><button className="action-button action-primary" type="button" onClick={() => onNavigate('jobMatches')}>◉ &nbsp; Score Against Job</button></div>
+        <input className="document-title" aria-label="Document name" value={documentName} onChange={(event) => { setDocumentName(event.target.value); setSaved(false) }} />
+        <span className="autosave-status"><i /> {saved ? 'Saved to Cloud' : 'Unsaved changes'}</span>
+        <div className="editor-toolbar-actions">
+          <button className="action-button action-outline" type="button" onClick={() => documentInputRef.current?.click()}>Upload file</button>
+          <input ref={documentInputRef} className="hidden-file-input" type="file" accept=".pdf,.doc,.docx,.txt" onChange={handleDocumentUpload} />
+          <button className="action-button action-outline" type="button" onClick={() => window.print()}>Export PDF</button>
+          <button className="action-button action-primary" type="button" onClick={() => onNavigate('jobMatches')}>Score Against Job</button>
+        </div>
       </div>
-      <div className="editor-workspace">
-        <aside className="editor-sections-panel">
-          <h2>SECTIONS STRUCTURE</h2>
-          {sections.map((section) => <div className={`editor-section-row ${activeSection === section ? 'is-active' : ''}`} key={section}><button type="button" onClick={() => setActiveSection(section)}><span className="drag-handle">⠿</span>{section}</button><button className={`visibility-toggle ${hiddenSections.includes(section) ? 'is-hidden' : ''}`} type="button" aria-label={`${hiddenSections.includes(section) ? 'Show' : 'Hide'} ${section}`} onClick={() => toggleSection(section)}>{hiddenSections.includes(section) ? '◌' : '◉'}</button></div>)}
-          <button className="add-section-button" type="button" onClick={() => setActiveSection('Certifications')}>＋ &nbsp; Add New Section</button>
-        </aside>
-        <section className="resume-canvas" aria-label="Resume preview">
-          <article className="resume-paper" style={{ fontFamily: fontFamily === 'Plus Jakarta Sans' ? 'inherit' : fontFamily, fontSize }}>
-            {!hiddenSections.includes('Personal Info') && <header className={`paper-personal ${activeSection === 'Personal Info' ? 'paper-section-active' : ''}`} onClick={() => setActiveSection('Personal Info')}><h1>ALEX MERCER</h1><p>Seattle, WA • (555) 019-2831 • alex.mercer@email.com • github.com/alexmercer</p></header>}
-            {!hiddenSections.includes('Professional Summary') && <section className={`paper-section ${activeSection === 'Professional Summary' ? 'paper-section-active' : ''}`} onClick={() => setActiveSection('Professional Summary')}><h2>PROFESSIONAL SUMMARY</h2><p>Detail-oriented Junior Web Developer with a strong foundation in modern frontend architectures. Experienced in building responsive interfaces with React, TypeScript, and Tailwind CSS. Passionate about optimization and clean, semantic markup.</p></section>}
-            {!hiddenSections.includes('Work Experience') && <section className={`paper-section ${activeSection === 'Work Experience' ? 'paper-section-active' : ''}`} onClick={() => setActiveSection('Work Experience')}><div className="paper-section-title"><h2>WORK EXPERIENCE</h2>{activeSection === 'Work Experience' && <span>EDITING</span>}</div><div className="paper-job-line"><strong>Junior Web Developer — Apex Tech Solutions</strong><span>2024 – Present</span></div><textarea aria-label="Edit work experience" value={experience} onChange={(event) => setExperience(event.target.value)} /></section>}
-            {!hiddenSections.includes('Skills Inventory') && <section className={`paper-section ${activeSection === 'Skills Inventory' ? 'paper-section-active' : ''}`} onClick={() => setActiveSection('Skills Inventory')}><h2>SKILLS INVENTORY</h2><p><strong>Languages:</strong> JavaScript, TypeScript, HTML5, CSS3, SQL<br /><strong>Frameworks:</strong> React, Next.js, Tailwind CSS, Node.js, Express</p></section>}
-            {!hiddenSections.includes('Education') && <section className={`paper-section paper-compact ${activeSection === 'Education' ? 'paper-section-active' : ''}`} onClick={() => setActiveSection('Education')}><h2>EDUCATION</h2><p><strong>B.S. Computer Science</strong> — University of Washington, 2024</p></section>}
-            {!hiddenSections.includes('Certifications') && <section className={`paper-section paper-compact ${activeSection === 'Certifications' ? 'paper-section-active' : ''}`} onClick={() => setActiveSection('Certifications')}><h2>CERTIFICATIONS</h2><p>Responsive Web Design — freeCodeCamp</p></section>}
-          </article>
-        </section>
-        <aside className="editor-format-panel">
-          <h2>FORMATTING</h2>
-          <label>Font Family<select value={fontFamily} onChange={(event) => setFontFamily(event.target.value)}><option>Plus Jakarta Sans</option><option>Arial</option><option>Georgia</option></select></label>
-          <div className="format-controls"><label>Base Size<select value={fontSize} onChange={(event) => setFontSize(event.target.value)}><option>10pt</option><option>11pt</option><option>12pt</option></select></label><label>Margins<select defaultValue="Compact"><option>Compact</option><option>Normal</option><option>Wide</option></select></label></div>
-          <div className="editor-ai-card"><h3>✧ AI Recommendation</h3><p>{optimized ? 'Your experience now highlights TypeScript and measurable impact for this role.' : 'We detected “APEX Solutions” contains zero active match keywords overlap against standard web development jobs. Consider adding tags like “REST APIs” or “State Management”.'}</p><button type="button" onClick={toggleOptimization}>{optimized ? 'Undo suggestion' : 'Auto-optimize line'}</button></div>
-        </aside>
+      {uploadError && <p className="editor-upload-error" role="alert">{uploadError} Make sure the backend is running on port 5000.</p>}
+
+      <div className="document-menu-bar" aria-label="Document menus">
+        <button type="button">File</button><button type="button">Edit</button><button type="button">View</button><button type="button">Insert</button><button type="button">Format</button><button type="button">Tools</button>
       </div>
+
+      <div className="document-format-bar" aria-label="Formatting toolbar">
+        <button type="button" title="Undo" onClick={() => execute('undo')}>↶</button>
+        <button type="button" title="Redo" onClick={() => execute('redo')}>↷</button>
+        <span className="toolbar-divider" />
+        <select aria-label="Text style" defaultValue="p" onChange={(event) => execute('formatBlock', event.target.value)}>
+          <option value="p">Normal text</option><option value="h1">Title</option><option value="h2">Heading 1</option><option value="h3">Heading 2</option>
+        </select>
+        <select aria-label="Font family" defaultValue="Arial" onChange={(event) => execute('fontName', event.target.value)}>
+          <option>Arial</option><option>Calibri</option><option>Georgia</option><option>Times New Roman</option><option>Verdana</option>
+        </select>
+        <select aria-label="Font size" defaultValue="3" onChange={(event) => execute('fontSize', event.target.value)}>
+          <option value="1">8</option><option value="2">10</option><option value="3">12</option><option value="4">14</option><option value="5">18</option><option value="6">24</option><option value="7">32</option>
+        </select>
+        <span className="toolbar-divider" />
+        {commands.map((item) => <button className={`format-command format-command--${item.command}`} key={item.command} type="button" title={item.title} onClick={() => execute(item.command)}>{item.label}</button>)}
+        <label className="color-control" title="Text color">A<input type="color" defaultValue="#202124" onChange={(event) => execute('foreColor', event.target.value)} /></label>
+        <label className="color-control color-control--highlight" title="Highlight color">▰<input type="color" defaultValue="#fff59d" onChange={(event) => execute('hiliteColor', event.target.value)} /></label>
+        <span className="toolbar-divider" />
+        <button type="button" title="Align left" onClick={() => execute('justifyLeft')}>≡</button>
+        <button type="button" title="Align center" onClick={() => execute('justifyCenter')}>≣</button>
+        <button type="button" title="Align right" onClick={() => execute('justifyRight')}>≡</button>
+        <button type="button" title="Bulleted list" onClick={() => execute('insertUnorderedList')}>•≡</button>
+        <button type="button" title="Numbered list" onClick={() => execute('insertOrderedList')}>1≡</button>
+        <button type="button" title="Decrease indent" onClick={() => execute('outdent')}>⇤</button>
+        <button type="button" title="Increase indent" onClick={() => execute('indent')}>⇥</button>
+        <select aria-label="Line spacing" defaultValue="1.5" onChange={(event) => execute('formatBlock', `<div style="line-height:${event.target.value}">`)}>
+          <option value="1">Single</option><option value="1.15">1.15</option><option value="1.5">1.5</option><option value="2">Double</option>
+        </select>
+        <button type="button" title="Insert link" onClick={() => { const url = window.prompt('Enter a URL'); if (url) execute('createLink', url) }}>⌁</button>
+        <button type="button" title="Insert image" onClick={() => imageInputRef.current?.click()}>▧</button>
+        <input ref={imageInputRef} className="hidden-file-input" type="file" accept="image/*" onChange={handleImage} />
+      </div>
+
+      <main className="document-workspace">
+        <div className="document-ruler" aria-hidden="true"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span></div>
+        <article
+          ref={editorRef}
+          className="document-page"
+          contentEditable
+          suppressContentEditableWarning
+          spellCheck
+          data-placeholder="Start typing your document..."
+          onInput={() => setSaved(false)}
+          onBlur={() => setSaved(false)}
+          aria-label="Document editor"
+        />
+      </main>
     </div>
   )
 }

@@ -170,6 +170,16 @@
   font-size: 11px;
 }
 
+.password-toggle {
+  border: 0;
+  padding: 2px 0;
+  background: transparent;
+  color: #098d82;
+  font-size: 10px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
 .password-label {
   display: flex;
   justify-content: space-between;
@@ -186,10 +196,21 @@
   font-size: 10px;
 }
 
+.login-error {
+  margin: -3px 0 11px;
+  color: #c23b4a;
+  font-size: 10px;
+}
+
 .login-submit,
 .login-google {
   width: 100%;
   margin-top: 7px;
+}
+
+.login-submit:disabled {
+  cursor: wait;
+  opacity: .65;
 }
 
 .login-google {

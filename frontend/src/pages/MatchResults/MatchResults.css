@@ -62,16 +62,29 @@
   max-width: 880px;
 }
 
+.explanation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
 .explanation-label {
   display: inline-flex;
   align-items: center;
   padding: 7px 10px;
   border-radius: 6px;
-  margin-bottom: 12px;
   color: #078d81;
   background: #edfaf7;
   font-size: 10px;
   font-weight: 750;
+}
+
+.no-terms-note {
+  color: #94a3b8;
+  font-size: 9px;
+  font-style: italic;
 }
 
 .score-explanation p {
