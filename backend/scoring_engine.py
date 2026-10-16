@@ -19,8 +19,11 @@ LEXICON = [
     # Backend & Databases
     "Node.js", "Express", "Express.js", "Flask", "Django", "FastAPI", "Spring Boot",
     "PostgreSQL", "MySQL", "MongoDB", "Redis", "SQLite", "Prisma", "TypeORM",
+    "Supabase", "Supabase Auth", "Row Level Security", "RLS", "Edge Functions",
     # Cloud & Ops
     "AWS", "Azure", "GCP", "Google Cloud", "Vercel", "Netlify", "Linux", "Nginx",
+    "DNS", "SSL", "VPN", "Firewall", "Monitoring", "Deployment", "Automation",
+    "Backup", "Disaster Recovery", "Virtual Machines", "CI/CD Pipelines",
     # Design & UX
     "Figma", "Adobe XD", "Sketch", "Prototyping", "Wireframing", "Design Systems",
     "Design Tokens", "User Research", "Usability Testing", "UI/UX Design",
@@ -74,7 +77,14 @@ CANONICAL_MAP = {
     "responsive web design": "Responsive Web Design",
     "github actions": "GitHub Actions",
     "postgres": "PostgreSQL",
-    "postgresql": "PostgreSQL"
+    "postgresql": "PostgreSQL",
+    "supabase auth": "Supabase Auth",
+    "row level security": "Row Level Security",
+    "rls": "Row Level Security",
+    "edge functions": "Edge Functions",
+    "ci/cd pipelines": "CI/CD Pipelines",
+    "virtual machines": "Virtual Machines",
+    "disaster recovery": "Disaster Recovery"
 }
 
 # Related skill clusters for partial matching
@@ -206,8 +216,9 @@ def compute_match(resume_text: str, job_text: str) -> Dict[str, Any]:
     # Weighted combination: 55% skill coverage, 45% semantic cosine similarity
     raw_score = (skill_coverage * 0.55 + normalized_cosine * 0.45) * 100
     
-    # Scale to calibrated range (e.g., minimum 20%, maximum 98%)
-    calibrated_score = int(round(min(max(raw_score, 20.0), 98.0)))
+    # Keep the score proportional to the measured overlap. Do not hide a very
+    # weak match behind an arbitrary 20% floor.
+    calibrated_score = int(round(min(max(raw_score, 0.0), 98.0)))
 
     matched_list = sorted(list(matched_set))
     missing_list = sorted(list(still_missing))

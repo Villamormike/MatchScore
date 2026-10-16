@@ -1,5 +1,12 @@
+﻿import json
+import logging
+import re
+from pathlib import Path
+from urllib.error import HTTPError, URLError
+from urllib.parse import quote
+from urllib.request import Request, urlopen
+
 import os
-import json
 from typing import Dict, Any, List
 
 # Template templates for actionable suggestions by skill domain
@@ -76,7 +83,144 @@ SKILL_SUGGESTIONS = {
         "reason": "The job description places strong emphasis on responsive, fast-loading user experiences.",
         "suggestion": "Performance-focused developer specializing in responsive interfaces, Core Web Vitals optimization, and clean component architectures."
     }
-}
+
+    }
+
+logger = logging.getLogger(__name__)
+
+
+def _get_gemini_api_key() -> str:
+    """Read the provider key from the environment or the local key file."""
+    configured_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if configured_key:
+        return configured_key
+
+    key_path = Path(__file__).with_name("api_key")
+    try:
+        key_value = key_path.read_text(encoding="utf-8").strip()
+    except FileNotFoundError:
+        return ""
+    except OSError as exc:
+        logger.warning("Unable to read Gemini API key file: %s", exc)
+        return ""
+
+    if ":" in key_value:
+        key_value = key_value.split(":", 1)[1].strip()
+    return key_value
+
+
+def _parse_json_response(text: str) -> Dict[str, Any]:
+    """Parse JSON returned by the model, including fenced JSON responses."""
+    cleaned = text.strip()
+    fenced_match = re.search(r"```(?:json)?\s*(.*?)\s*```", cleaned, re.DOTALL | re.IGNORECASE)
+    if fenced_match:
+        cleaned = fenced_match.group(1).strip()
+    parsed = json.loads(cleaned)
+    if not isinstance(parsed, dict):
+        raise ValueError("Gemini response must be a JSON object")
+    return parsed
+
+
+def _validate_ai_guidance(payload: Dict[str, Any]) -> Dict[str, Any]:
+    explanation = payload.get("explanation")
+    recommendations = payload.get("recommendations")
+    if not isinstance(explanation, str) or not explanation.strip():
+        raise ValueError("Gemini response is missing an explanation")
+    if not isinstance(recommendations, list):
+        raise ValueError("Gemini response is missing recommendations")
+
+    normalized_recommendations: List[Dict[str, str]] = []
+    for recommendation in recommendations[:6]:
+        if not isinstance(recommendation, dict):
+            continue
+        fields = ("section", "title", "impact", "confidence", "reason", "suggestion")
+        if not all(isinstance(recommendation.get(field), str) for field in fields):
+            continue
+        normalized_recommendations.append({
+            field: recommendation[field].strip() for field in fields
+        })
+
+    if not normalized_recommendations:
+        raise ValueError("Gemini response contains no valid recommendations")
+    return {
+        "explanation": explanation.strip(),
+        "recommendations": normalized_recommendations,
+    }
+
+
+def generate_ai_guidance(
+    resume_text: str,
+    job_text: str,
+    score: int,
+    matched_terms: List[str],
+    missing_terms: List[str],
+    partial_terms: List[str],
+    job_title: str,
+) -> Dict[str, Any] | None:
+    """Ask Gemini for tailored guidance, returning None when it cannot be used."""
+    api_key = _get_gemini_api_key()
+    if not api_key:
+        return None
+
+    prompt = f"""
+You are a resume and hiring expert. Analyze the resume against the job posting.
+The numeric match score is calculated by a separate deterministic engine and must
+not be changed: {score}/100.
+
+Return ONLY valid JSON with this exact shape:
+{{
+  "explanation": "A concise, evidence-based explanation of the score.",
+  "recommendations": [
+    {{
+      "section": "WORK EXPERIENCE|SKILLS INVENTORY|PROFESSIONAL SUMMARY|EDUCATION",
+      "title": "Short actionable title",
+      "impact": "+N%",
+      "confidence": "High Confidence|Medium Confidence|Low Confidence",
+      "reason": "Why this change helps this application",
+      "suggestion": "A truthful example edit; never invent experience or metrics"
+    }}
+  ]
+}}
+
+Provide 2 to 6 recommendations. Use only information supported by the resume.
+Role: {job_title}
+Matched terms: {", ".join(matched_terms) or "None"}
+Missing terms: {", ".join(missing_terms) or "None"}
+Partial terms: {", ".join(partial_terms) or "None"}
+
+RESUME:
+{resume_text[:12000]}
+
+JOB POSTING:
+{job_text[:12000]}
+"""
+    model = os.getenv("GEMINI_MODEL", "gemini-3.8-flash").strip()
+    endpoint = (
+        "https://generativelanguage.googleapis.com/v1beta/models/"
+        f"{quote(model, safe='')}:generateContent?key={quote(api_key)}"
+    )
+    body = json.dumps({
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {
+            "temperature": 0.2,
+            "responseMimeType": "application/json",
+        },
+    }).encode("utf-8")
+
+    try:
+        request = Request(
+            endpoint,
+            data=body,
+            headers={"Content-Type": "application/json"},
+            method="POST",
+        )
+        with urlopen(request, timeout=20) as response:
+            response_data = json.loads(response.read().decode("utf-8"))
+        model_text = response_data["candidates"][0]["content"]["parts"][0]["text"]
+        return _validate_ai_guidance(_parse_json_response(model_text))
+    except (HTTPError, URLError, TimeoutError, KeyError, IndexError, TypeError, ValueError) as exc:
+            logger.warning("Gemini guidance unavailable; using deterministic guidance: %s", exc)
+            return None
 
 
 def generate_explanation(

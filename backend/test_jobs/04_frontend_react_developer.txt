@@ -1,0 +1,29 @@
+# Frontend React Developer
+Bright Pixel Labs
+Remote - Philippines
+
+Web Development (Information & Communication Technology)
+Full time
+
+## About the role
+
+Join a product team building accessible, fast, and polished web applications.
+You will work closely with designers and backend engineers to deliver reusable
+frontend features.
+
+## Responsibilities
+
+- Develop responsive interfaces using React, TypeScript, HTML5, and CSS3.
+- Build reusable components with Tailwind CSS and modern state management.
+- Translate Figma designs into accessible, responsive user experiences.
+- Integrate REST APIs and handle loading, error, and empty states.
+- Write unit and end-to-end tests using Jest and Playwright.
+- Improve performance, accessibility, and Core Web Vitals.
+- Collaborate through Git workflows, code reviews, and CI/CD.
+
+## Requirements
+
+- Strong React and JavaScript fundamentals.
+- Experience with TypeScript, CSS, responsive design, and REST APIs.
+- Familiarity with Figma, accessibility, testing, and Git.
+- A portfolio demonstrating thoughtful UI implementation.

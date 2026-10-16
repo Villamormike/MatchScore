@@ -1,0 +1,29 @@
+# Full Stack JavaScript Developer
+Harbor Digital Solutions
+Remote - Philippines
+
+Developers/Programmers (Information & Communication Technology)
+Full time
+
+## About the role
+
+We are hiring a Full Stack JavaScript Developer to build customer-facing
+applications for growing businesses. The role covers frontend development,
+backend services, databases, and deployment.
+
+## Responsibilities
+
+- Build responsive user interfaces with React, JavaScript, TypeScript, HTML, and CSS.
+- Develop Node.js and Express REST APIs for web and mobile clients.
+- Design database schemas and queries using PostgreSQL.
+- Integrate authentication, file uploads, notifications, and third-party APIs.
+- Write unit and integration tests with Jest.
+- Use Git, Docker, and CI/CD pipelines to ship reliable releases.
+- Monitor production issues and optimize application performance.
+
+## Requirements
+
+- Two or more years of full stack web development experience.
+- Strong skills in React, JavaScript, TypeScript, Node.js, and REST APIs.
+- Working knowledge of PostgreSQL, Git, testing, and cloud deployment.
+- Good communication, ownership, and debugging skills.

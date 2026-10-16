@@ -9,8 +9,11 @@
 .editor-toolbar-actions .action-button { min-height: 31px; padding: 0 10px; font-size: 9px; }
 .editor-upload-error { margin: 7px 0 0 35px; color: #c23b4a; font-size: 10px; }
 .document-menu-bar { display: flex; gap: 3px; padding: 4px 0; }
+.document-menu { position: relative; }
 .document-menu-bar button { border: 0; border-radius: 4px; padding: 5px 8px; color: #3c4043; background: transparent; font-size: 11px; cursor: pointer; }
 .document-menu-bar button:hover { background: #f1f3f4; }
+.document-menu-dropdown { position: absolute; z-index: 5; top: 31px; left: 0; min-width: 165px; padding: 5px 0; border: 1px solid #dadce0; border-radius: 5px; background: #fff; box-shadow: 0 3px 10px rgba(60,64,67,.25); }
+.document-menu-dropdown button { width: 100%; display: block; border-radius: 0; padding: 7px 12px; text-align: left; font-size: 11px; white-space: nowrap; }
 .document-format-bar { min-height: 40px; display: flex; align-items: center; flex-wrap: wrap; gap: 3px; padding: 4px 6px; border: 1px solid #dadce0; border-radius: 6px; background: #f8f9fa; }
 .document-format-bar button, .color-control { min-width: 27px; height: 28px; display: inline-grid; place-items: center; border: 0; border-radius: 4px; padding: 0 6px; color: #3c4043; background: transparent; font-size: 14px; cursor: pointer; }
 .document-format-bar button:hover, .color-control:hover { background: #e8eaed; }
@@ -19,14 +22,20 @@
 .document-format-bar select[aria-label="Text style"] { width: 105px; }.document-format-bar select[aria-label="Font family"] { width: 110px; }.document-format-bar select[aria-label="Font size"] { width: 48px; }
 .toolbar-divider { width: 1px; height: 22px; margin: 0 3px; background: #dadce0; }
 .color-control { position: relative; font-weight: 800; }.color-control input { position: absolute; width: 1px; height: 1px; opacity: 0; }.color-control--highlight { color: #d19b00; }
+.image-toolbar-label { color: #5f6368; font-size: 10px; font-weight: 700; }
+.delete-image-button { color: #c23b4a !important; }
 .hidden-file-input { display: none; }
 .document-workspace { min-height: 650px; position: relative; overflow: auto; padding: 29px 25px 60px; background: #f1f3f4; }
 .document-ruler { width: min(816px, calc(100% - 20px)); height: 18px; display: flex; justify-content: space-around; margin: 0 auto -1px; color: #80868b; font-size: 9px; }
 .document-page { width: min(816px, 100%); min-height: 1056px; box-sizing: border-box; margin: 0 auto; padding: 76px 80px; outline: 0; background: #fff; box-shadow: 0 1px 4px rgba(60,64,67,.25); font-family: Arial, sans-serif; font-size: 12pt; line-height: 1.5; }
 .document-page:empty::before { content: attr(data-placeholder); color: #9aa0a6; pointer-events: none; }
 .document-page img { max-width: 100%; height: auto; cursor: pointer; }
+.document-page img:focus, .document-page img.is-selected { outline: 2px solid #1a73e8; outline-offset: 3px; }
 .document-page h1 { font-size: 26pt; }.document-page h2 { font-size: 20pt; }.document-page h3 { font-size: 16pt; }
 .document-page p { margin: 0 0 10px; }
+.document-page .docx-tab-row { display: grid; grid-template-columns: 161.55pt minmax(0, 1fr); align-items: start; }
+.document-page .docx-tab-cell { min-width: 0; }
+.document-page .docx-import { min-height: 100%; }
 @media (max-width: 800px) { .document-format-bar { gap: 1px; }.document-workspace { padding: 18px 10px 40px; }.document-page { min-height: 850px; padding: 45px 35px; } }
 @media (max-width: 620px) { .editor-toolbar { flex-wrap: wrap; }.editor-toolbar-actions { width: 100%; margin-left: 35px; }.document-page { padding: 32px 22px; }.document-format-bar select[aria-label="Font family"] { width: 90px; } }
 @media print { .app-header, .editor-toolbar, .document-menu-bar, .document-format-bar, .document-ruler { display: none !important; }.document-workspace { padding: 0; background: #fff; }.document-page { width: 100%; min-height: auto; box-shadow: none; } }

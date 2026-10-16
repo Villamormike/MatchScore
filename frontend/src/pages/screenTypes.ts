@@ -34,6 +34,7 @@ export type ScoreResult = {
   missing_terms: string[]
   partial_terms: string[]
   recommendations: Recommendation[]
+  ai_guidance_used?: boolean
   breakdown?: {
     total_job_terms?: number
     matched_count?: number
@@ -47,6 +48,8 @@ export type UploadedDocument = {
   filename: string
   format: string
   text: string
+  html?: string
+  page_style?: Record<string, string>
   sections: Record<string, string>
   word_count: number
   char_count: number

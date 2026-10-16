@@ -64,7 +64,9 @@ function MatchResults({ result, onNavigate }: Props) {
         </div>
         <div className="score-explanation">
           <div className="explanation-header">
-            <span className="explanation-label">✧ &nbsp; AI Score Explanation & Breakdown</span>
+            <span className="explanation-label">
+              ✧ &nbsp; {current.ai_guidance_used === false ? 'Score Explanation & Breakdown' : 'AI Score Explanation & Breakdown'}
+            </span>
             <span className={`match-pill match-pill--${color}`}>
               {scoreNum >= 75 ? 'Strong Alignment' : scoreNum >= 55 ? 'Moderate Alignment' : 'Needs Optimization'}
             </span>

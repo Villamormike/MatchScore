@@ -32,6 +32,19 @@ npm run dev
 Frontend: `http://localhost:5173`  
 API health check: `http://localhost:5000/api/health`
 
+## AI scoring guidance
+
+The match score itself is calculated locally with TF-IDF, cosine similarity,
+and skill matching. The backend uses Gemini to tailor the score explanation and
+resume recommendations when a key is available. Configure the key either as
+`GEMINI_API_KEY` in `backend/.env`, or place it in `backend/api_key` as a
+single line such as `Gemini: YOUR_KEY`. The key file is ignored by Git.
+The default model is `gemini-3.8-flash`; override it with `GEMINI_MODEL` if
+your project uses a different Gemini model.
+
+If Gemini is unavailable, scoring continues with the built-in deterministic
+explanation and recommendations.
+
 ## Email sign-in testing
 
 The login form uses Supabase Auth with an email address and password. A Gmail

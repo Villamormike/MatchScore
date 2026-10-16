@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 from document_parser import parse_document
 from scoring_engine import compute_match
-from ai_guidance import generate_explanation, generate_recommendations
+from ai_guidance import generate_ai_guidance, generate_explanation, generate_recommendations
 
 load_dotenv()
 
@@ -190,6 +190,19 @@ def score_match():
         partial_terms=partial_terms
     )
 
+    ai_guidance = generate_ai_guidance(
+        resume_text=resume_text,
+        job_text=job_text,
+        score=overall_score,
+        matched_terms=matched_terms,
+        missing_terms=missing_terms,
+        partial_terms=partial_terms,
+        job_title=job_title,
+    )
+    if ai_guidance:
+        explanation = ai_guidance["explanation"]
+        recommendations = ai_guidance["recommendations"]
+
     # 3. Format result
     color = "green" if overall_score >= 75 else ("amber" if overall_score >= 55 else "rose")
     now = datetime.datetime.now()
@@ -212,6 +225,7 @@ def score_match():
         "missing_terms": missing_terms,
         "partial_terms": partial_terms,
         "recommendations": recommendations,
+        "ai_guidance_used": ai_guidance is not None,
         "breakdown": match_result["breakdown"]
     }
 

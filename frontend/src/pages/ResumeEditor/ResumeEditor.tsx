@@ -18,9 +18,12 @@ function ResumeEditor({ onNavigate, onDocumentUploaded }: Props) {
   const editorRef = useRef<HTMLDivElement>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
   const documentInputRef = useRef<HTMLInputElement>(null)
+  const selectedImageRef = useRef<HTMLImageElement | null>(null)
   const [documentName, setDocumentName] = useState('Untitled document')
   const [saved, setSaved] = useState(true)
   const [uploadError, setUploadError] = useState('')
+  const [hasSelectedImage, setHasSelectedImage] = useState(false)
+  const [openMenu, setOpenMenu] = useState<string | null>(null)
 
   const execute = (command: string, value?: string) => {
     editorRef.current?.focus()
@@ -35,6 +38,32 @@ function ResumeEditor({ onNavigate, onDocumentUploaded }: Props) {
     reader.onload = () => execute('insertImage', String(reader.result))
     reader.readAsDataURL(file)
     event.target.value = ''
+  }
+
+  const updateImage = (property: 'width' | 'height' | 'float', value: string) => {
+    const selectedImage = selectedImageRef.current
+    if (!selectedImage) return
+    if (property === 'float') {
+      selectedImage.style.float = value === 'none' ? '' : value
+      selectedImage.style.display = value === 'none' ? 'block' : 'inline'
+      selectedImage.style.margin = value === 'none' ? '10px 0' : '10px'
+    } else {
+      selectedImage.style[property] = value
+      if (property === 'width') selectedImage.style.height = 'auto'
+    }
+    setSaved(false)
+  }
+
+  const deleteSelectedImage = () => {
+    selectedImageRef.current?.remove()
+    selectedImageRef.current = null
+    setHasSelectedImage(false)
+    setSaved(false)
+  }
+
+  const menuAction = (action: () => void) => {
+    action()
+    setOpenMenu(null)
   }
 
   const handleDocumentUpload = async (event: ChangeEvent<HTMLInputElement>) => {
@@ -57,11 +86,20 @@ function ResumeEditor({ onNavigate, onDocumentUploaded }: Props) {
       }
 
       if (editorRef.current) {
-        const lines = result.data.text.split(/\r?\n/)
-        editorRef.current.innerHTML = lines
-          .map((line: string) => line.trim() ? `<div>${line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>` : '<div><br></div>')
-          .join('')
+        if (result.data.html) {
+          editorRef.current.innerHTML = result.data.html
+        } else {
+          const lines = result.data.text.split(/\r?\n/)
+          editorRef.current.innerHTML = lines
+            .map((line: string) => line.trim() ? `<div>${line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>` : '<div><br></div>')
+            .join('')
+        }
         editorRef.current.focus()
+      }
+      if (editorRef.current && result.data.page_style) {
+        Object.entries(result.data.page_style).forEach(([property, value]) => {
+          editorRef.current?.style.setProperty(property.replace(/[A-Z]/g, (letter: string) => `-${letter.toLowerCase()}`), String(value))
+        })
       }
       onDocumentUploaded(result.data)
       setDocumentName(file.name.replace(/\.[^/.]+$/, ''))
@@ -87,7 +125,53 @@ function ResumeEditor({ onNavigate, onDocumentUploaded }: Props) {
       {uploadError && <p className="editor-upload-error" role="alert">{uploadError} Make sure the backend is running on port 5000.</p>}
 
       <div className="document-menu-bar" aria-label="Document menus">
-        <button type="button">File</button><button type="button">Edit</button><button type="button">View</button><button type="button">Insert</button><button type="button">Format</button><button type="button">Tools</button>
+        <div className="document-menu">
+          <button type="button" aria-expanded={openMenu === 'file'} onClick={() => setOpenMenu(openMenu === 'file' ? null : 'file')}>File</button>
+          {openMenu === 'file' && <div className="document-menu-dropdown">
+            <button type="button" onClick={() => menuAction(() => editorRef.current?.focus())}>New document</button>
+            <button type="button" onClick={() => menuAction(() => documentInputRef.current?.click())}>Open / Upload file</button>
+            <button type="button" onClick={() => menuAction(() => window.print())}>Download / Export PDF</button>
+          </div>}
+        </div>
+        <div className="document-menu">
+          <button type="button" aria-expanded={openMenu === 'edit'} onClick={() => setOpenMenu(openMenu === 'edit' ? null : 'edit')}>Edit</button>
+          {openMenu === 'edit' && <div className="document-menu-dropdown">
+            <button type="button" onClick={() => menuAction(() => execute('undo'))}>Undo</button>
+            <button type="button" onClick={() => menuAction(() => execute('redo'))}>Redo</button>
+            <button type="button" onClick={() => menuAction(() => execute('selectAll'))}>Select all</button>
+          </div>}
+        </div>
+        <div className="document-menu">
+          <button type="button" aria-expanded={openMenu === 'view'} onClick={() => setOpenMenu(openMenu === 'view' ? null : 'view')}>View</button>
+          {openMenu === 'view' && <div className="document-menu-dropdown">
+            <button type="button" onClick={() => menuAction(() => editorRef.current?.focus())}>Focus document</button>
+            <button type="button" onClick={() => menuAction(() => window.print())}>Print preview</button>
+          </div>}
+        </div>
+        <div className="document-menu">
+          <button type="button" aria-expanded={openMenu === 'insert'} onClick={() => setOpenMenu(openMenu === 'insert' ? null : 'insert')}>Insert</button>
+          {openMenu === 'insert' && <div className="document-menu-dropdown">
+            <button type="button" onClick={() => menuAction(() => imageInputRef.current?.click())}>Image</button>
+            <button type="button" onClick={() => menuAction(() => { const url = window.prompt('Enter a URL'); if (url) execute('createLink', url) })}>Link</button>
+            <button type="button" onClick={() => menuAction(() => execute('insertHTML', '<hr>'))}>Horizontal line</button>
+          </div>}
+        </div>
+        <div className="document-menu">
+          <button type="button" aria-expanded={openMenu === 'format'} onClick={() => setOpenMenu(openMenu === 'format' ? null : 'format')}>Format</button>
+          {openMenu === 'format' && <div className="document-menu-dropdown">
+            <button type="button" onClick={() => menuAction(() => execute('bold'))}>Bold</button>
+            <button type="button" onClick={() => menuAction(() => execute('italic'))}>Italic</button>
+            <button type="button" onClick={() => menuAction(() => execute('underline'))}>Underline</button>
+            <button type="button" onClick={() => menuAction(() => execute('removeFormat'))}>Clear formatting</button>
+          </div>}
+        </div>
+        <div className="document-menu">
+          <button type="button" aria-expanded={openMenu === 'tools'} onClick={() => setOpenMenu(openMenu === 'tools' ? null : 'tools')}>Tools</button>
+          {openMenu === 'tools' && <div className="document-menu-dropdown">
+            <button type="button" onClick={() => menuAction(() => editorRef.current?.focus())}>Spelling</button>
+            <button type="button" onClick={() => menuAction(() => setSaved(true))}>Mark as saved</button>
+          </div>}
+        </div>
       </div>
 
       <div className="document-format-bar" aria-label="Formatting toolbar">
@@ -121,6 +205,17 @@ function ResumeEditor({ onNavigate, onDocumentUploaded }: Props) {
         <button type="button" title="Insert link" onClick={() => { const url = window.prompt('Enter a URL'); if (url) execute('createLink', url) }}>⌁</button>
         <button type="button" title="Insert image" onClick={() => imageInputRef.current?.click()}>▧</button>
         <input ref={imageInputRef} className="hidden-file-input" type="file" accept="image/*" onChange={handleImage} />
+        {hasSelectedImage && <>
+          <span className="toolbar-divider" />
+          <span className="image-toolbar-label">Image</span>
+          <select aria-label="Image width" defaultValue="auto" onChange={(event) => updateImage('width', event.target.value)}>
+            <option value="auto">Auto</option><option value="25%">25%</option><option value="50%">50%</option><option value="75%">75%</option><option value="100%">100%</option>
+          </select>
+          <button type="button" title="Align image left" onClick={() => updateImage('float', 'left')}>◧</button>
+          <button type="button" title="Center image" onClick={() => updateImage('float', 'none')}>▣</button>
+          <button type="button" title="Align image right" onClick={() => updateImage('float', 'right')}>◨</button>
+          <button type="button" className="delete-image-button" title="Delete image" onClick={deleteSelectedImage}>⌫</button>
+        </>}
       </div>
 
       <main className="document-workspace">
@@ -134,6 +229,18 @@ function ResumeEditor({ onNavigate, onDocumentUploaded }: Props) {
           data-placeholder="Start typing your document..."
           onInput={() => setSaved(false)}
           onBlur={() => setSaved(false)}
+          onClick={(event) => {
+            const target = event.target
+            selectedImageRef.current?.classList.remove('is-selected')
+            if (target instanceof HTMLImageElement) {
+              target.classList.add('is-selected')
+              selectedImageRef.current = target
+              setHasSelectedImage(true)
+            } else {
+              selectedImageRef.current = null
+              setHasSelectedImage(false)
+            }
+          }}
           aria-label="Document editor"
         />
       </main>
