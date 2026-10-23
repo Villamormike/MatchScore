@@ -88,6 +88,28 @@
   min-width: 0;
 }
 
+.document-open-button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.document-delete-button {
+  margin-top: 12px;
+  padding: 5px 9px;
+  border: 1px solid #f0c8cc;
+  border-radius: 5px;
+  color: #c4515c;
+  background: #fff7f7;
+  font-size: 10px;
+  cursor: pointer;
+}
+
 .document-card-top,
 .document-actions {
   display: flex;

@@ -40,7 +40,7 @@ CREATE TABLE IF NOT EXISTS public.documents (
     char_count INTEGER DEFAULT 0,
     summary_preview TEXT,
     skills_preview TEXT,
-    template_name TEXT DEFAULT 'Modern Layout — Single Column',
+    template_name TEXT DEFAULT 'Professional — Highly Structured',
     created_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::TEXT, NOW()) NOT NULL,
     updated_at TIMESTAMP WITH TIME ZONE DEFAULT TIMEZONE('utc'::TEXT, NOW()) NOT NULL
 );
@@ -108,15 +108,14 @@ CREATE TABLE IF NOT EXISTS public.templates (
 );
 
 -- Insert Default MatchScore Templates
+DELETE FROM public.templates
+WHERE name NOT IN ('Professional', 'Classic', 'Minimal');
+
 INSERT INTO public.templates (name, type, detail, accent)
 VALUES
-    ('Modern', 'Resume', 'Single Column', 'teal'),
     ('Classic', 'Resume', 'Traditional Layout', 'blue'),
     ('Minimal', 'Resume', 'Clean & Compact', 'gray'),
-    ('Creative', 'Portfolio', 'Dynamic Structure', 'violet'),
-    ('Professional', 'Resume', 'Highly Structured', 'navy'),
-    ('Two-Column', 'Resume', 'Side Navigation', 'mint'),
-    ('Executive', 'Resume', 'Elegant Traditional', 'sand')
+    ('Professional', 'Resume', 'Highly Structured', 'navy')
 ON CONFLICT DO NOTHING;
 
 -- ==============================================================================
@@ -227,3 +226,8 @@ CREATE POLICY "Anyone can read from resumes bucket"
     ON storage.objects FOR SELECT
     TO public
     USING (bucket_id = 'resumes');
+
+CREATE POLICY "Users can delete their own resume files"
+    ON storage.objects FOR DELETE
+    TO authenticated
+    USING (bucket_id = 'resumes' AND (storage.foldername(name))[1] = (select auth.uid()::text));

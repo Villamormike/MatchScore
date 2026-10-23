@@ -36,6 +36,112 @@
 .document-page .docx-tab-row { display: grid; grid-template-columns: 161.55pt minmax(0, 1fr); align-items: start; }
 .document-page .docx-tab-cell { min-width: 0; }
 .document-page .docx-import { min-height: 100%; }
+.document-page .resume-classic,
+.document-page .resume-minimal,
+.document-page .resume-professional {
+  min-height: 900px;
+  box-sizing: border-box;
+}
+.document-page .resume-classic {
+  text-align: center;
+  font-family: Georgia, serif;
+}
+.document-page .resume-classic h1 {
+  margin: 0 0 8px;
+  font-size: 30pt;
+  letter-spacing: 1px;
+}
+.document-page .resume-classic h2,
+.document-page .resume-classic h3 {
+  text-align: left;
+  font-family: Arial, sans-serif;
+}
+.document-page .resume-classic h2 {
+  margin: 28px 0 8px;
+  color: #418cbe;
+  font-size: 12pt;
+  letter-spacing: 1px;
+}
+.document-page .resume-classic h3 {
+  margin: 10px 0 4px;
+  font-size: 12pt;
+}
+.document-page .resume-classic p,
+.document-page .resume-classic ul {
+  text-align: left;
+}
+.document-page .resume-minimal {
+  padding: 25px 35px;
+  font-family: Arial, sans-serif;
+}
+.document-page .resume-minimal h1 {
+  margin: 0 0 8px;
+  font-size: 30pt;
+  font-weight: 400;
+  letter-spacing: 2px;
+}
+.document-page .resume-minimal h2 {
+  margin: 34px 0 9px;
+  color: #526273;
+  font-size: 11pt;
+  font-weight: 700;
+  letter-spacing: 2px;
+}
+.document-page .resume-minimal h3 {
+  margin: 14px 0 4px;
+  font-size: 12pt;
+  font-weight: 600;
+}
+.document-page .resume-professional {
+  display: grid;
+  grid-template-columns: 29% 1fr;
+  margin: -76px -80px;
+  font-family: Arial, sans-serif;
+}
+.document-page .resume-professional aside {
+  min-height: 1056px;
+  box-sizing: border-box;
+  padding: 45px 24px;
+  color: #fff;
+  background: #345577;
+}
+.document-page .resume-professional aside h1 {
+  margin: 0 0 55px;
+  color: #fff;
+  font-size: 24pt;
+  line-height: 1.05;
+}
+.document-page .resume-professional aside h2 {
+  margin: 24px 0 8px;
+  color: #dceaf5;
+  font-size: 10pt;
+  letter-spacing: 1px;
+}
+.document-page .resume-professional aside p {
+  color: #eef7ff;
+  font-size: 9pt;
+}
+.document-page .resume-professional main {
+  padding: 45px 42px;
+}
+.document-page .resume-professional main h2 {
+  margin: 0 0 10px;
+  color: #345577;
+  font-size: 12pt;
+  letter-spacing: 1px;
+}
+.document-page .resume-professional main h2:not(:first-child) {
+  margin-top: 30px;
+}
+.document-page .resume-professional main h3 {
+  margin: 12px 0 5px;
+  font-size: 13pt;
+}
+@media (max-width: 800px) {
+  .document-page .resume-professional {
+    margin: -45px -35px;
+  }
+}
 @media (max-width: 800px) { .document-format-bar { gap: 1px; }.document-workspace { padding: 18px 10px 40px; }.document-page { min-height: 850px; padding: 45px 35px; } }
 @media (max-width: 620px) { .editor-toolbar { flex-wrap: wrap; }.editor-toolbar-actions { width: 100%; margin-left: 35px; }.document-page { padding: 32px 22px; }.document-format-bar select[aria-label="Font family"] { width: 90px; } }
 @media print { .app-header, .editor-toolbar, .document-menu-bar, .document-format-bar, .document-ruler { display: none !important; }.document-workspace { padding: 0; background: #fff; }.document-page { width: 100%; min-height: auto; box-shadow: none; } }

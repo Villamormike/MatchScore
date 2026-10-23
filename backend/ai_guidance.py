@@ -89,6 +89,43 @@ SKILL_SUGGESTIONS = {
 logger = logging.getLogger(__name__)
 
 
+def _fallback_ai_layout(prompt: str) -> Dict[str, str]:
+    """Return a usable editable layout when the external model is unavailable."""
+    requested_style = prompt.strip().split(".", 1)[0][:80] or "Custom resume"
+    text = f"""YOUR NAME
+Professional title | email@example.com | phone | LinkedIn | Location
+
+PROFESSIONAL SUMMARY
+Add a concise summary tailored to your target role.
+
+SKILLS
+Add skills, tools, certifications, and technologies relevant to the role.
+
+WORK EXPERIENCE
+Job Title — Company Name | Dates
+• Describe an achievement, the action you took, and the measurable result.
+• Add responsibilities and tools relevant to the target role.
+
+PROJECTS
+Project Name | Technologies
+• Explain the problem, your contribution, and the outcome.
+
+EDUCATION
+Degree — School Name | Graduation Year"""
+    html = f"""<h1>YOUR NAME</h1>
+<p><strong>Professional title</strong> | email@example.com | phone | LinkedIn | Location</p>
+<hr><h2>PROFESSIONAL SUMMARY</h2>
+<p>Add a concise summary tailored to your target role.</p>
+<h2>SKILLS</h2><p>Add skills, tools, certifications, and technologies relevant to the role.</p>
+<h2>WORK EXPERIENCE</h2><h3>Job Title — Company Name <span>| Dates</span></h3>
+<ul><li>Describe an achievement, the action you took, and the measurable result.</li>
+<li>Add responsibilities and tools relevant to the target role.</li></ul>
+<h2>PROJECTS</h2><h3>Project Name <span>| Technologies</span></h3>
+<ul><li>Explain the problem, your contribution, and the outcome.</li></ul>
+<h2>EDUCATION</h2><p>Degree — School Name | Graduation Year</p>"""
+    return {"title": requested_style, "text": text, "html": html}
+
+
 def _get_gemini_api_key() -> str:
     """Read the provider key from the environment or the local key file."""
     configured_key = os.getenv("GEMINI_API_KEY", "").strip()
@@ -119,6 +156,52 @@ def _parse_json_response(text: str) -> Dict[str, Any]:
     if not isinstance(parsed, dict):
         raise ValueError("Gemini response must be a JSON object")
     return parsed
+
+
+def _request_gemini_json(prompt: str, timeout: int) -> Dict[str, Any] | None:
+    """Request JSON from Gemini with bounded generation and transient retries."""
+    api_key = _get_gemini_api_key()
+    if not api_key:
+        return None
+
+    body = json.dumps({
+        "contents": [{"parts": [{"text": prompt}]}],
+        "generationConfig": {
+            "temperature": 0.2,
+            "maxOutputTokens": 2048,
+            "responseMimeType": "application/json",
+            "thinkingConfig": {"thinkingBudget": 0},
+        },
+    }).encode("utf-8")
+
+    configured_model = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview").strip()
+    configured_fallback = os.getenv("GEMINI_FALLBACK_MODEL", "gemini-3.6-flash").strip()
+    models = list(dict.fromkeys(model for model in (configured_model, configured_fallback) if model))
+
+    for model in models:
+        endpoint = (
+            "https://generativelanguage.googleapis.com/v1beta/models/"
+            f"{quote(model, safe='')}:generateContent"
+        )
+        try:
+            request = Request(
+                f"{endpoint}?key={quote(api_key)}",
+                data=body,
+                headers={"Content-Type": "application/json"},
+                method="POST",
+            )
+            with urlopen(request, timeout=timeout) as response:
+                response_data = json.loads(response.read().decode("utf-8"))
+            model_text = response_data["candidates"][0]["content"]["parts"][0]["text"]
+            return _parse_json_response(model_text)
+        except HTTPError as exc:
+            error_body = exc.read().decode("utf-8", errors="replace")
+            logger.warning("Gemini model %s returned HTTP %s: %s", model, exc.code, error_body[:300])
+            continue
+        except (URLError, TimeoutError, KeyError, IndexError, TypeError, ValueError) as exc:
+            logger.warning("Gemini model %s failed: %s", model, exc)
+            continue
+    return None
 
 
 def _validate_ai_guidance(payload: Dict[str, Any]) -> Dict[str, Any]:
@@ -194,33 +277,50 @@ RESUME:
 JOB POSTING:
 {job_text[:12000]}
 """
-    model = os.getenv("GEMINI_MODEL", "gemini-3.8-flash").strip()
-    endpoint = (
-        "https://generativelanguage.googleapis.com/v1beta/models/"
-        f"{quote(model, safe='')}:generateContent?key={quote(api_key)}"
-    )
-    body = json.dumps({
-        "contents": [{"parts": [{"text": prompt}]}],
-        "generationConfig": {
-            "temperature": 0.2,
-            "responseMimeType": "application/json",
-        },
-    }).encode("utf-8")
-
+    response = _request_gemini_json(prompt, timeout=45)
+    if response is None:
+        logger.warning("Gemini guidance unavailable; using deterministic guidance")
+        return None
     try:
-        request = Request(
-            endpoint,
-            data=body,
-            headers={"Content-Type": "application/json"},
-            method="POST",
-        )
-        with urlopen(request, timeout=20) as response:
-            response_data = json.loads(response.read().decode("utf-8"))
-        model_text = response_data["candidates"][0]["content"]["parts"][0]["text"]
-        return _validate_ai_guidance(_parse_json_response(model_text))
-    except (HTTPError, URLError, TimeoutError, KeyError, IndexError, TypeError, ValueError) as exc:
-            logger.warning("Gemini guidance unavailable; using deterministic guidance: %s", exc)
-            return None
+        return _validate_ai_guidance(response)
+    except ValueError as exc:
+        logger.warning("Gemini guidance response was invalid; using deterministic guidance: %s", exc)
+        return None
+
+
+def generate_ai_layout(prompt: str) -> Dict[str, str] | None:
+    """Generate an editable resume layout from a user's design request."""
+    api_key = _get_gemini_api_key()
+    if not api_key:
+        logger.warning("Gemini layout unavailable; using local layout fallback because no API key is configured")
+        return _fallback_ai_layout(prompt)
+
+    layout_prompt = f"""
+Create an editable resume layout based on this request:
+{prompt[:4000]}
+
+Return ONLY valid JSON with this exact shape:
+{{
+  "title": "A short document title",
+  "text": "Plain text version with clear section line breaks",
+  "html": "Self-contained editable HTML using only h1, h2, h3, p, ul, ol, li, strong, em, hr, and span elements"
+}}
+
+Use placeholders where the user has not supplied personal information. Do not
+invent employment history, education, metrics, or skills. Make the layout
+professional, readable, and appropriate for the requested role or style.
+"""
+    response = _request_gemini_json(layout_prompt, timeout=45)
+    if response is None:
+        logger.warning("Gemini layout unavailable; using local layout fallback")
+        return _fallback_ai_layout(prompt)
+    title = response.get("title")
+    text = response.get("text")
+    html = response.get("html")
+    if not all(isinstance(value, str) and value.strip() for value in (title, text, html)):
+        logger.warning("Gemini layout response was incomplete; using local layout fallback")
+        return _fallback_ai_layout(prompt)
+    return {"title": title.strip(), "text": text.strip(), "html": html.strip()}
 
 
 def generate_explanation(

@@ -12,6 +12,8 @@ import ResumeEditor from './pages/ResumeEditor/ResumeEditor'
 import ScoreHistory from './pages/ScoreHistory/ScoreHistory'
 import Templates from './pages/Templates/Templates'
 import type { ScreenKey, ScoreResult, UploadedDocument } from './pages/screenTypes'
+import type { SavedDocument } from './pages/screenTypes'
+import { deleteAccountDocument, loadAccountData, saveAccountScore } from './lib/accountStorage'
 
 const navigation: { label: string; screen: ScreenKey }[] = [
   { label: 'Dashboard', screen: 'dashboard' },
@@ -67,6 +69,10 @@ function App() {
   const [uploadedDocument, setUploadedDocument] = useState<UploadedDocument | null>(null)
   const [activeScoreResult, setActiveScoreResult] = useState<ScoreResult | null>(null)
   const [scoreHistory, setScoreHistory] = useState<ScoreResult[]>([])
+  const [documents, setDocuments] = useState<SavedDocument[]>([])
+  const [activeDocument, setActiveDocument] = useState<SavedDocument | null>(null)
+  const [generatedDocument, setGeneratedDocument] = useState<UploadedDocument | null>(null)
+  const [accountError, setAccountError] = useState('')
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -82,6 +88,23 @@ function App() {
     return () => authListener.subscription.unsubscribe()
   }, [])
 
+  useEffect(() => {
+    if (!user) {
+      setDocuments([])
+      setScoreHistory([])
+      return
+    }
+    loadAccountData()
+      .then(({ documents: loadedDocuments, scores }) => {
+        setDocuments(loadedDocuments)
+        setScoreHistory(scores)
+      })
+      .catch((error) => {
+        console.error('Unable to load account data', error)
+        setAccountError('Your account data could not be loaded. Please refresh and try again.')
+      })
+  }, [user])
+
   if (screen === 'home') {
     return <Home onGetStarted={() => setScreen('login')} onSignIn={() => setScreen('login')} />
   }
@@ -96,7 +119,33 @@ function App() {
   const handleScored = (result: ScoreResult) => {
     setActiveScoreResult(result)
     setScoreHistory((prev) => [result, ...prev.filter((item) => item.id !== result.id)])
+    const matchingDocument = uploadedDocument
+    saveAccountScore(result, matchingDocument?.id)
+      .then((savedResult) => setScoreHistory((prev) => [savedResult, ...prev.filter((item) => item.id !== result.id && item.id !== savedResult.id)]))
+      .catch((error) => {
+        console.error('Unable to save score result', error)
+        setAccountError('The score was shown, but could not be saved to your account.')
+      })
     setScreen('matchResults')
+  }
+
+  const handleDocumentSaved = (document: SavedDocument) => {
+    setUploadedDocument(document)
+    setDocuments((prev) => [document, ...prev.filter((item) => item.id !== document.id)])
+  }
+
+  const handleDocumentDeleted = async (document: SavedDocument) => {
+    try {
+      await deleteAccountDocument(document)
+      setDocuments((prev) => prev.filter((item) => item.id !== document.id))
+      if (uploadedDocument?.id === document.id) {
+        setUploadedDocument(null)
+        setActiveDocument(null)
+      }
+    } catch (error) {
+      console.error('Unable to delete document', error)
+      setAccountError('The document could not be deleted from your account.')
+    }
   }
 
   const renderScreen = () => {
@@ -105,8 +154,15 @@ function App() {
         return (
           <Dashboard
             recentScores={scoreHistory}
+            documents={documents}
             userName={user.email?.split('@')[0] || 'there'}
             onNavigate={setScreen}
+            onSelectDocument={(document) => {
+              setActiveDocument(document)
+              setUploadedDocument(document)
+              setScreen('resumeEditor')
+            }}
+            onDeleteDocument={handleDocumentDeleted}
             onSelectScore={(selected) => {
               setActiveScoreResult(selected)
               setScreen('matchResults')
@@ -114,9 +170,20 @@ function App() {
           />
         )
       case 'templates':
-        return <Templates onNavigate={setScreen} />
+        return <Templates onGenerateLayout={(document) => {
+          setGeneratedDocument(document)
+          setActiveDocument(null)
+          setScreen('resumeEditor')
+        }} />
       case 'jobMatches':
-        return <JobMatches onScore={handleScored} uploadedDocument={uploadedDocument} />
+        return (
+          <JobMatches
+            onScore={handleScored}
+            uploadedDocument={uploadedDocument}
+            previousScore={activeScoreResult}
+            onDocumentSaved={handleDocumentSaved}
+          />
+        )
       case 'matchResults':
         return <MatchResults result={activeScoreResult} onNavigate={setScreen} />
       case 'recommendations':
@@ -132,7 +199,14 @@ function App() {
           />
         )
       case 'resumeEditor':
-        return <ResumeEditor onNavigate={setScreen} onDocumentUploaded={setUploadedDocument} />
+        return (
+          <ResumeEditor
+            initialDocument={activeDocument}
+            initialContent={generatedDocument}
+            onNavigate={setScreen}
+            onDocumentUploaded={handleDocumentSaved}
+          />
+        )
     }
   }
 
@@ -140,6 +214,7 @@ function App() {
     <div className="app-shell">
       <AppHeader screen={screen} user={user} onNavigate={setScreen} onSignOut={() => supabase.auth.signOut()} />
       <main className="page-content" key={screen}>{renderScreen()}</main>
+      {accountError && <p role="alert" className="account-error">{accountError}</p>}
     </div>
   )
 }

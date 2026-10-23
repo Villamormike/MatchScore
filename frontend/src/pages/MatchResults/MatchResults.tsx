@@ -27,12 +27,14 @@ const defaultResult: ScoreResult = {
 
 function MatchResults({ result, onNavigate }: Props) {
   const current = result || defaultResult
-  const scoreNum = Math.min(Math.max(current.overall_score || 78, 0), 100)
+  const scoreNum = Math.min(Math.max(Number.isFinite(current.overall_score) ? current.overall_score : 0, 0), 100)
   const color = current.color || (scoreNum >= 75 ? 'green' : scoreNum >= 55 ? 'amber' : 'rose')
   const gaugeHex = color === 'green' ? '#0e9c8e' : (color === 'amber' ? '#d97706' : '#e11d48')
 
   const gaugeStyle: CSSProperties = {
-    background: `conic-gradient(${gaugeHex} 0% ${scoreNum}%, #e2e8f0 ${scoreNum}% 100%)`
+    background: scoreNum === 0
+      ? gaugeHex
+      : `conic-gradient(${gaugeHex} 0% ${scoreNum}%, #e2e8f0 ${scoreNum}% 100%)`
   }
 
   return (

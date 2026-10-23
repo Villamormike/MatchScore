@@ -24,6 +24,7 @@ export type ScoreResult = {
   timestamp: string
   job_title: string
   company: string
+  job_description?: string
   role: string
   score: string
   overall_score: number
@@ -45,6 +46,9 @@ export type ScoreResult = {
 }
 
 export type UploadedDocument = {
+  id?: string
+  sourceFile?: File
+  file_url?: string | null
   filename: string
   format: string
   text: string
@@ -55,4 +59,10 @@ export type UploadedDocument = {
   char_count: number
   summary_preview: string
   skills_preview: string
+}
+
+export type SavedDocument = UploadedDocument & {
+  id: string
+  name: string
+  updated_at: string
 }

@@ -1,10 +1,15 @@
-import { useRef, useState, type ChangeEvent } from 'react'
+import { useEffect, useRef, useState, type ChangeEvent, type ClipboardEvent } from 'react'
 import './ResumeEditor.css'
 import type { ScreenKey, UploadedDocument } from '../screenTypes'
+import type { SavedDocument } from '../screenTypes'
+import { saveAccountDocument } from '../../lib/accountStorage'
+import { apiUrl } from '../../api'
 
 type Props = {
+  initialDocument?: SavedDocument | null
+  initialContent?: UploadedDocument | null
   onNavigate: (screen: ScreenKey) => void
-  onDocumentUploaded: (document: UploadedDocument) => void
+  onDocumentUploaded: (document: SavedDocument) => void
 }
 
 const commands = [
@@ -14,16 +19,59 @@ const commands = [
   { label: 'S', command: 'strikeThrough', title: 'Strikethrough' },
 ] as const
 
-function ResumeEditor({ onNavigate, onDocumentUploaded }: Props) {
+function ResumeEditor({ initialDocument, initialContent, onNavigate, onDocumentUploaded }: Props) {
   const editorRef = useRef<HTMLDivElement>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
   const documentInputRef = useRef<HTMLInputElement>(null)
   const selectedImageRef = useRef<HTMLImageElement | null>(null)
-  const [documentName, setDocumentName] = useState('Untitled document')
+  const [documentName, setDocumentName] = useState(initialDocument?.name || (initialContent ? 'AI Generated Resume' : 'Untitled document'))
   const [saved, setSaved] = useState(true)
   const [uploadError, setUploadError] = useState('')
   const [hasSelectedImage, setHasSelectedImage] = useState(false)
   const [openMenu, setOpenMenu] = useState<string | null>(null)
+  const [documentId, setDocumentId] = useState<string | undefined>(initialDocument?.id)
+  const [saveError, setSaveError] = useState('')
+
+  useEffect(() => {
+    const content = initialDocument || initialContent
+    if (!content || !editorRef.current) return
+    if (content.html) {
+      editorRef.current.innerHTML = content.html
+    } else {
+      editorRef.current.textContent = content.text
+    }
+  }, [initialDocument, initialContent])
+
+  const saveDocument = async (document: UploadedDocument, name = documentName) => {
+    setSaveError('')
+    setSaved(false)
+    try {
+      const savedDocument = await saveAccountDocument(document, name, documentId)
+      setDocumentId(savedDocument.id)
+      onDocumentUploaded(savedDocument)
+      setSaved(true)
+    } catch (error) {
+      console.error('Unable to save document', error)
+      setSaveError('Could not save this document to your account.')
+    }
+  }
+
+  const saveEditorContent = () => {
+    const editor = editorRef.current
+    if (!editor || !editor.innerText.trim()) return
+    const text = editor.innerText
+    void saveDocument({
+      filename: documentName,
+      format: 'HTML',
+      text,
+      html: editor.innerHTML,
+      sections: {},
+      word_count: text.split(/\s+/).filter(Boolean).length,
+      char_count: text.length,
+      summary_preview: text.slice(0, 150),
+      skills_preview: '',
+    })
+  }
 
   const execute = (command: string, value?: string) => {
     editorRef.current?.focus()
@@ -76,7 +124,7 @@ function ResumeEditor({ onNavigate, onDocumentUploaded }: Props) {
     formData.append('file', file)
 
     try {
-      const response = await fetch('http://localhost:5000/api/upload-resume', {
+      const response = await fetch(apiUrl('/api/upload-resume'), {
         method: 'POST',
         body: formData,
       })
@@ -85,28 +133,63 @@ function ResumeEditor({ onNavigate, onDocumentUploaded }: Props) {
         throw new Error(result.error || 'The file could not be imported.')
       }
 
-      if (editorRef.current) {
-        if (result.data.html) {
-          editorRef.current.innerHTML = result.data.html
-        } else {
-          const lines = result.data.text.split(/\r?\n/)
-          editorRef.current.innerHTML = lines
-            .map((line: string) => line.trim() ? `<div>${line.replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>` : '<div><br></div>')
-            .join('')
-        }
-        editorRef.current.focus()
-      }
+      importDocumentIntoEditor(result.data)
       if (editorRef.current && result.data.page_style) {
         Object.entries(result.data.page_style).forEach(([property, value]) => {
           editorRef.current?.style.setProperty(property.replace(/[A-Z]/g, (letter: string) => `-${letter.toLowerCase()}`), String(value))
         })
       }
-      onDocumentUploaded(result.data)
       setDocumentName(file.name.replace(/\.[^/.]+$/, ''))
-      setSaved(false)
+      void saveDocument({ ...result.data, sourceFile: file }, file.name.replace(/\.[^/.]+$/, ''))
     } catch (error) {
-      setUploadError(error instanceof Error ? error.message : 'The file could not be imported.')
+      if (file.type === 'text/plain' || file.name.toLowerCase().endsWith('.txt')) {
+        const reader = new FileReader()
+        reader.onload = () => {
+          const text = String(reader.result || '')
+          const fallbackDocument: UploadedDocument = {
+            filename: file.name,
+            format: 'TXT',
+            text,
+            sourceFile: file,
+            sections: { raw: text },
+            word_count: text.split(/\s+/).filter(Boolean).length,
+            char_count: text.length,
+            summary_preview: text.slice(0, 150),
+            skills_preview: '',
+          }
+          importDocumentIntoEditor(fallbackDocument)
+          setDocumentName(file.name.replace(/\.[^/.]+$/, ''))
+          void saveDocument(fallbackDocument, file.name.replace(/\.[^/.]+$/, ''))
+        }
+        reader.onerror = () => setUploadError('The text file could not be read.')
+        reader.readAsText(file)
+        return
+      }
+      setUploadError('Could not reach the document parser. Start the backend to import PDF or DOCX files.')
     }
+  }
+
+  const importDocumentIntoEditor = (document: UploadedDocument) => {
+    if (!editorRef.current) return
+    if (document.html) {
+      editorRef.current.innerHTML = document.html
+    } else {
+      editorRef.current.textContent = document.text
+    }
+    editorRef.current.focus()
+  }
+
+  const handlePaste = (event: ClipboardEvent<HTMLDivElement>) => {
+    const html = event.clipboardData.getData('text/html')
+    const text = event.clipboardData.getData('text/plain')
+    if (!text) return
+    event.preventDefault()
+    if (html) {
+      document.execCommand('insertHTML', false, html)
+    } else {
+      document.execCommand('insertText', false, text)
+    }
+    setSaved(false)
   }
 
   return (
@@ -123,6 +206,7 @@ function ResumeEditor({ onNavigate, onDocumentUploaded }: Props) {
         </div>
       </div>
       {uploadError && <p className="editor-upload-error" role="alert">{uploadError} Make sure the backend is running on port 5000.</p>}
+      {saveError && <p className="editor-upload-error" role="alert">{saveError}</p>}
 
       <div className="document-menu-bar" aria-label="Document menus">
         <div className="document-menu">
@@ -228,7 +312,8 @@ function ResumeEditor({ onNavigate, onDocumentUploaded }: Props) {
           spellCheck
           data-placeholder="Start typing your document..."
           onInput={() => setSaved(false)}
-          onBlur={() => setSaved(false)}
+          onPaste={handlePaste}
+          onBlur={saveEditorContent}
           onClick={(event) => {
             const target = event.target
             selectedImageRef.current?.classList.remove('is-selected')

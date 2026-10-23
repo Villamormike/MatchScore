@@ -1,14 +1,17 @@
 import './Dashboard.css'
-import type { ScreenKey, ScoreResult } from '../screenTypes'
+import type { SavedDocument, ScreenKey, ScoreResult } from '../screenTypes'
 
 type Props = {
   recentScores?: ScoreResult[]
   onNavigate: (screen: ScreenKey) => void
   onSelectScore?: (item: ScoreResult) => void
   userName?: string
+  documents?: SavedDocument[]
+  onSelectDocument?: (document: SavedDocument) => void
+  onDeleteDocument?: (document: SavedDocument) => void
 }
 
-function Dashboard({ recentScores, onNavigate, onSelectScore, userName = 'there' }: Props) {
+function Dashboard({ recentScores, onNavigate, onSelectScore, userName = 'there', documents = [], onSelectDocument, onDeleteDocument }: Props) {
   const matches = (recentScores && recentScores.length > 0)
     ? recentScores.slice(0, 4).map((s) => ({
         raw: s,
@@ -40,8 +43,8 @@ function Dashboard({ recentScores, onNavigate, onSelectScore, userName = 'there'
       <section className="dashboard-stats" aria-label="Resume statistics">
         <article className="surface stat-card">
           <div className="stat-label">TOTAL DOCUMENTS <span className="stat-icon">▤</span></div>
-          <strong>0 Active</strong>
-          <small>Your uploaded documents will appear here.</small>
+          <strong>{documents.length} Active</strong>
+          <small>{documents.length ? 'Saved to your account.' : 'Your uploaded documents will appear here.'}</small>
         </article>
         <article className="surface stat-card">
           <div className="stat-label">AVG. COSINE MATCH <span className="stat-icon">◉</span></div>
@@ -61,11 +64,29 @@ function Dashboard({ recentScores, onNavigate, onSelectScore, userName = 'there'
             <h2>My Documents</h2>
             <button className="text-link" type="button" onClick={() => onNavigate('templates')}>Add a document</button>
           </div>
-          <div className="surface document-card">
+          {documents.length ? documents.slice(0, 4).map((document) => (
+            <article className="surface document-card" key={document.id}>
+              <button className="document-open-button" type="button" onClick={() => onSelectDocument?.(document)}>
+                <h3>{document.name}</h3>
+                <p className="document-note">{document.word_count} words · Updated {new Date(document.updated_at).toLocaleDateString()}</p>
+              </button>
+              <button
+                className="document-delete-button"
+                type="button"
+                onClick={() => {
+                  if (window.confirm(`Delete "${document.name}" from your account?`)) {
+                    void onDeleteDocument?.(document)
+                  }
+                }}
+              >
+                Delete
+              </button>
+            </article>
+          )) : <div className="surface document-card">
             <h3>No documents yet</h3>
             <p className="document-note">Create or upload a resume to start building your personal workspace.</p>
             <button className="action-button action-primary" type="button" onClick={() => onNavigate('templates')}>Add your first document</button>
-          </div>
+          </div>}
           <button className="history-link" type="button" onClick={() => onNavigate('scoreHistory')}>
             View your score history <span aria-hidden="true">→</span>
           </button>

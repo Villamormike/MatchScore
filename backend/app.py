@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 from document_parser import parse_document
 from scoring_engine import compute_match
-from ai_guidance import generate_ai_guidance, generate_explanation, generate_recommendations
+from ai_guidance import generate_ai_guidance, generate_ai_layout, generate_explanation, generate_recommendations
 
 load_dotenv()
 
@@ -113,6 +113,7 @@ def upload_resume():
                 "success": True,
                 "data": parsed
             })
+
         except Exception as e:
             return jsonify({
                 "error": f"Failed to parse document: {str(e)}"
@@ -131,6 +132,17 @@ def upload_resume():
         "success": True,
         "data": parsed
     })
+
+
+@app.post("/api/generate-layout")
+def generate_layout():
+    data = request.get_json(silent=True) or {}
+    prompt = data.get("prompt", "")
+    if not isinstance(prompt, str) or not prompt.strip():
+        return jsonify({"error": "Describe the layout you want"}), 400
+
+    layout = generate_ai_layout(prompt)
+    return jsonify({"success": True, "data": layout})
 
 
 @app.post("/api/score")

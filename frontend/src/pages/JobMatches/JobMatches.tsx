@@ -1,6 +1,8 @@
 import { useState, useRef, type ChangeEvent } from 'react'
 import './JobMatches.css'
-import type { ScoreResult, UploadedDocument } from '../screenTypes'
+import type { SavedDocument, ScoreResult, UploadedDocument } from '../screenTypes'
+import { apiUrl } from '../../api'
+import { saveAccountDocument } from '../../lib/accountStorage'
 
 const exampleDescription = `We are looking for a Frontend Developer with experience building responsive web applications using React, TypeScript, JavaScript, HTML, and CSS. 
 
@@ -70,9 +72,11 @@ SKILLS & TOOLS
 type Props = {
   onScore: (result: ScoreResult) => void
   uploadedDocument?: UploadedDocument | null
+  previousScore?: ScoreResult | null
+  onDocumentSaved?: (document: SavedDocument) => void
 }
 
-function JobMatches({ onScore, uploadedDocument: initialDocument }: Props) {
+function JobMatches({ onScore, uploadedDocument: initialDocument, previousScore, onDocumentSaved }: Props) {
   const [docSource, setDocSource] = useState<'preset' | 'upload'>('upload')
   const [selectedPresetIndex, setSelectedPresetIndex] = useState(0)
   const [uploadedDoc, setUploadedDoc] = useState<UploadedDocument | null>(initialDocument || null)
@@ -81,9 +85,9 @@ function JobMatches({ onScore, uploadedDocument: initialDocument }: Props) {
   const [showPreview, setShowPreview] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
 
-  const [jobTitle, setJobTitle] = useState('Frontend Developer')
-  const [company, setCompany] = useState('TechCorp Inc.')
-  const [description, setDescription] = useState('')
+  const [jobTitle, setJobTitle] = useState(previousScore?.job_title || 'Frontend Developer')
+  const [company, setCompany] = useState(previousScore?.company || 'TechCorp Inc.')
+  const [description, setDescription] = useState(previousScore?.job_description || '')
   const [isScoring, setIsScoring] = useState(false)
   const [attempted, setAttempted] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
@@ -101,6 +105,18 @@ function JobMatches({ onScore, uploadedDocument: initialDocument }: Props) {
 
   const isReady = description.trim().length >= 120 && activeResumeText.trim().length >= 50
 
+  const saveUploadedDocument = async (document: UploadedDocument) => {
+    try {
+      const savedDocument = await saveAccountDocument(document, document.filename.replace(/\.[^/.]+$/, ''), document.id)
+      setUploadedDoc(savedDocument)
+      onDocumentSaved?.(savedDocument)
+      setUploadError(null)
+    } catch (error) {
+      console.error('Unable to save uploaded document', error)
+      setUploadError('The file was imported, but could not be saved to your account.')
+    }
+  }
+
   const handleFileUpload = async (event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0]
     if (!file) return
@@ -112,7 +128,7 @@ function JobMatches({ onScore, uploadedDocument: initialDocument }: Props) {
     formData.append('file', file)
 
     try {
-      const response = await fetch('http://localhost:5000/api/upload-resume', {
+      const response = await fetch(apiUrl('/api/upload-resume'), {
         method: 'POST',
         body: formData,
       })
@@ -123,10 +139,12 @@ function JobMatches({ onScore, uploadedDocument: initialDocument }: Props) {
 
       const resData = await response.json()
       if (resData.success && resData.data) {
-        setUploadedDoc(resData.data)
-        setCustomText(resData.data.text)
+        const parsedDocument: UploadedDocument = { ...resData.data, sourceFile: file }
+        setUploadedDoc(parsedDocument)
+        setCustomText(parsedDocument.text)
         setDocSource('upload')
         setShowPreview(true)
+        await saveUploadedDocument(parsedDocument)
       } else {
         throw new Error(resData.error || 'Could not parse document')
       }
@@ -149,6 +167,7 @@ function JobMatches({ onScore, uploadedDocument: initialDocument }: Props) {
         setCustomText(text)
         setDocSource('upload')
         setShowPreview(true)
+        void saveUploadedDocument(fallbackDoc)
       }
       reader.readAsText(file)
     } finally {
@@ -164,7 +183,7 @@ function JobMatches({ onScore, uploadedDocument: initialDocument }: Props) {
 
     setIsScoring(true)
     try {
-      const response = await fetch('http://localhost:5000/api/score', {
+      const response = await fetch(apiUrl('/api/score'), {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -179,7 +198,7 @@ function JobMatches({ onScore, uploadedDocument: initialDocument }: Props) {
       if (response.ok) {
         const json = await response.json()
         if (json.success && json.data) {
-          onScore(json.data)
+          onScore({ ...json.data, job_description: description })
           return
         }
       }
@@ -202,6 +221,7 @@ function JobMatches({ onScore, uploadedDocument: initialDocument }: Props) {
         timestamp: `Scored Today, ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`,
         job_title: jobTitle,
         company: company,
+        job_description: description,
         role: `${jobTitle} at ${company}`,
         score: `${scoreValue}%`,
         overall_score: scoreValue,
