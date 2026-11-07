@@ -41,9 +41,11 @@ const fallbackRecommendations: Recommendation[] = [
 
 type Props = {
   recommendations?: Recommendation[]
+  onApplyRecommendation?: (recommendation: Recommendation) => Promise<void>
+  onBackToEditor?: () => void
 }
 
-function AIRecommendations({ recommendations }: Props) {
+function AIRecommendations({ recommendations, onApplyRecommendation, onBackToEditor }: Props) {
   const activeRecs = (recommendations && recommendations.length > 0)
     ? recommendations
     : fallbackRecommendations
@@ -51,6 +53,8 @@ function AIRecommendations({ recommendations }: Props) {
   const [selectedSection, setSelectedSection] = useState(defaultSections[0])
   const [dismissed, setDismissed] = useState<string[]>([])
   const [applied, setApplied] = useState<string[]>([])
+  const [applying, setApplying] = useState<string | null>(null)
+  const [applyError, setApplyError] = useState('')
 
   const getSectionCount = (sectionName: string) => {
     return activeRecs.filter(
@@ -64,13 +68,35 @@ function AIRecommendations({ recommendations }: Props) {
       (recommendation.section.toLowerCase() === selectedSection.toLowerCase())
   )
 
+  const applyRecommendation = async (recommendation: Recommendation) => {
+    if (!onApplyRecommendation) return
+    setApplying(recommendation.title)
+    setApplyError('')
+    try {
+      await onApplyRecommendation(recommendation)
+      setApplied((current) => [...current, recommendation.title])
+    } catch (error) {
+      console.error('Unable to apply recommendation', error)
+      setApplyError('This recommendation could not be applied. Please try again.')
+    } finally {
+      setApplying(null)
+    }
+  }
+
   return (
     <div className="recommendations-page">
       <section className="page-heading recommendations-heading">
         <div>
           <h1>Improvement Recommendations & Feedback</h1>
         </div>
-        <span className="ai-note">✧ AI recommendations tailored directly to your target job</span>
+        <div className="recommendations-heading-actions">
+          <span className="ai-note">✧ AI recommendations tailored directly to your target job</span>
+          {onBackToEditor && (
+            <button className="action-button action-outline" type="button" onClick={onBackToEditor}>
+              Back to resume editor
+            </button>
+          )}
+        </div>
       </section>
       <div className="recommendations-layout">
         <aside className="surface resume-sections-card">
@@ -129,13 +155,15 @@ function AIRecommendations({ recommendations }: Props) {
                       <button
                         className="action-button action-primary"
                         type="button"
-                        onClick={() => setApplied((current) => [...current, recommendation.title])}
+                        disabled={applying !== null}
+                        onClick={() => void applyRecommendation(recommendation)}
                       >
-                        Apply Edit
+                        {applying === recommendation.title ? 'Applying...' : 'Apply Edit'}
                       </button>
                     </>
                   )}
                 </div>
+                {applyError && applying === null && <p className="recommendation-error" role="alert">{applyError}</p>}
               </article>
             ))
           )}

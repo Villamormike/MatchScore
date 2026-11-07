@@ -6,7 +6,7 @@ from dotenv import load_dotenv
 
 from document_parser import parse_document
 from scoring_engine import compute_match
-from ai_guidance import generate_ai_guidance, generate_ai_layout, generate_explanation, generate_recommendations
+from ai_guidance import generate_ai_guidance, generate_ai_layout, generate_ai_resume_edit, generate_explanation, generate_recommendations
 
 load_dotenv()
 
@@ -114,6 +114,8 @@ def upload_resume():
                 "data": parsed
             })
 
+        except ValueError as e:
+            return jsonify({"error": str(e)}), 422
         except Exception as e:
             return jsonify({
                 "error": f"Failed to parse document: {str(e)}"
@@ -143,6 +145,30 @@ def generate_layout():
 
     layout = generate_ai_layout(prompt)
     return jsonify({"success": True, "data": layout})
+
+
+@app.post("/api/apply-recommendations")
+def apply_recommendations():
+    data = request.get_json(silent=True) or {}
+    resume_text = data.get("resume_text", "")
+    resume_html = data.get("resume_html", "")
+    recommendations = data.get("recommendations", [])
+    job_title = data.get("job_title", "Target Role")
+
+    if not isinstance(resume_text, str) or not resume_text.strip():
+        return jsonify({"error": "Resume text is empty or missing"}), 400
+    if not isinstance(recommendations, list) or not recommendations:
+        return jsonify({"error": "At least one recommendation is required"}), 400
+
+    edited_resume = generate_ai_resume_edit(
+        resume_text=resume_text,
+        resume_html=resume_html if isinstance(resume_html, str) else "",
+        recommendations=recommendations,
+        job_title=job_title if isinstance(job_title, str) else "Target Role",
+    )
+    if edited_resume is None:
+        return jsonify({"error": "AI resume improvement is unavailable. Check the Gemini configuration and try again."}), 503
+    return jsonify({"success": True, "data": edited_resume})
 
 
 @app.post("/api/score")
@@ -227,6 +253,7 @@ def score_match():
         "timestamp": timestamp_str,
         "job_title": job_title,
         "company": company,
+        "job_description": job_text,
         "role": f"{job_title} at {company}",
         "score": f"{overall_score}%",
         "overall_score": overall_score,

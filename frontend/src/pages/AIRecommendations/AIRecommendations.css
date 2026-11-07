@@ -79,6 +79,25 @@
   align-items: center;
 }
 
+.recommendations-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.recommendations-heading-actions .action-button {
+  min-height: 34px;
+  padding: 0 12px;
+  font-size: 10px;
+}
+
+@media (max-width: 700px) {
+  .recommendations-heading-actions {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+}
+
 .recommendation-card-top {
   justify-content: space-between;
   gap: 10px;

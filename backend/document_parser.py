@@ -57,22 +57,31 @@ def clean_text(raw_text: str) -> str:
 
 
 def extract_text_from_pdf(file_bytes: bytes) -> str:
-    """Extract text from PDF while preserving layout and line breaks."""
+    """Extract text from text-based PDFs, including positioned Canva exports."""
     stream = io.BytesIO(file_bytes)
     reader = pypdf.PdfReader(stream)
     pages_text = []
     
     for page in reader.pages:
+        extracted_candidates: List[str] = []
         try:
-            # Modern pypdf supports extraction_mode="layout" to maintain multi-column and line positions
-            page_text = page.extract_text(extraction_mode="layout")
-        except Exception:
-            page_text = page.extract_text()
-        if page_text:
+            extracted_candidates.append(page.extract_text(extraction_mode="layout") or "")
+        except (TypeError, ValueError):
+            pass
+        try:
+            extracted_candidates.append(page.extract_text() or "")
+        except (TypeError, ValueError):
+            pass
+
+        # Some design tools produce a sparse layout result while the default
+        # extractor still contains the complete text stream.
+        page_text = max(extracted_candidates, key=lambda value: len(value.strip()), default="")
+        if page_text.strip():
             pages_text.append(page_text)
             
     raw_combined = "\n\n".join(pages_text)
-    return clean_text(raw_combined)
+    extracted_text = clean_text(raw_combined)
+    return extracted_text.replace("\x00", "")
 
 
 def extract_text_from_docx(file_bytes: bytes) -> str:
@@ -310,6 +319,12 @@ def parse_document(file_bytes: bytes, filename: str) -> Dict[str, Any]:
             formatted_document = {}
     else:
         extracted_text = extract_text_from_txt(file_bytes)
+
+    if not extracted_text.strip():
+        raise ValueError(
+            "No selectable text was found. Export the Canva design as PDF Standard "
+            "or upload a DOCX/TXT file instead of an image-only PDF."
+        )
         
     sections = segment_resume_sections(extracted_text)
     words = len(extracted_text.split())

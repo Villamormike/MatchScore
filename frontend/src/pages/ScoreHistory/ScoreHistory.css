@@ -75,6 +75,15 @@
   margin-top: 9px;
 }
 
+.score-chart-empty {
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+  color: #94a3b8;
+  font-size: 11px;
+  font-style: italic;
+}
+
 .chart-grid-line {
   stroke: #e8edf2;
   stroke-dasharray: 3 4;
@@ -162,6 +171,16 @@
   font-size: 9px;
   text-decoration: underline;
   text-underline-offset: 2px;
+}
+
+.history-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.scoring-table .text-link--danger {
+  color: #c23b4a;
 }
 
 @media (max-width: 720px) {

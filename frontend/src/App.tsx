@@ -13,7 +13,8 @@ import ScoreHistory from './pages/ScoreHistory/ScoreHistory'
 import Templates from './pages/Templates/Templates'
 import type { ScreenKey, ScoreResult, UploadedDocument } from './pages/screenTypes'
 import type { SavedDocument } from './pages/screenTypes'
-import { deleteAccountDocument, loadAccountData, saveAccountScore } from './lib/accountStorage'
+import { deleteAccountDocument, deleteAccountScore, loadAccountData, saveAccountDocument, saveAccountScore } from './lib/accountStorage'
+import { apiUrl } from './api'
 
 const navigation: { label: string; screen: ScreenKey }[] = [
   { label: 'Dashboard', screen: 'dashboard' },
@@ -117,8 +118,10 @@ function App() {
   }
 
   const handleScored = (result: ScoreResult) => {
-    setActiveScoreResult(result)
-    setScoreHistory((prev) => [result, ...prev.filter((item) => item.id !== result.id)])
+    const scoredDocumentId = uploadedDocument?.id
+    const scoredResult = scoredDocumentId ? { ...result, document_id: scoredDocumentId } : result
+    setActiveScoreResult(scoredResult)
+    setScoreHistory((prev) => [scoredResult, ...prev.filter((item) => item.id !== result.id)])
     const matchingDocument = uploadedDocument
     saveAccountScore(result, matchingDocument?.id)
       .then((savedResult) => setScoreHistory((prev) => [savedResult, ...prev.filter((item) => item.id !== result.id && item.id !== savedResult.id)]))
@@ -131,7 +134,137 @@ function App() {
 
   const handleDocumentSaved = (document: SavedDocument) => {
     setUploadedDocument(document)
+    setActiveDocument(document)
     setDocuments((prev) => [document, ...prev.filter((item) => item.id !== document.id)])
+  }
+
+  const handleApplyRecommendation = async (recommendation: ScoreResult['recommendations'][number]) => {
+    const document = activeDocument || generatedDocument || uploadedDocument
+    if (!document || !activeScoreResult) {
+      throw new Error('Open or upload a resume before applying a recommendation.')
+    }
+
+    const response = await fetch(apiUrl('/api/apply-recommendations'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        resume_text: document.text,
+        resume_html: document.html || '',
+        recommendations: [recommendation],
+        job_title: activeScoreResult.job_title,
+      }),
+    })
+    const result = await response.json()
+    if (!response.ok || !result.success || !result.data?.text || !result.data?.html) {
+      throw new Error(result.error || 'AI recommendation application failed.')
+    }
+
+    const updatedDocument: UploadedDocument = {
+      ...document,
+      text: result.data.text,
+      html: result.data.html,
+      format: 'HTML',
+      word_count: result.data.text.split(/\s+/).filter(Boolean).length,
+      char_count: result.data.text.length,
+      summary_preview: result.data.text.slice(0, 150),
+    }
+    const savedDocument = await saveAccountDocument(
+      updatedDocument,
+      activeDocument?.name || document.filename.replace(/\.[^/.]+$/, ''),
+      document.id,
+    )
+    setUploadedDocument(savedDocument)
+    setActiveDocument(savedDocument)
+    setGeneratedDocument(null)
+    setDocuments((prev) => [savedDocument, ...prev.filter((item) => item.id !== savedDocument.id)])
+    setScreen('resumeEditor')
+  }
+
+  const getScoreDocument = () => activeDocument || generatedDocument || uploadedDocument
+
+  const handleImproveResume = async () => {
+    const document = getScoreDocument()
+    if (!document || !activeScoreResult) {
+      throw new Error('Open or upload a resume before improving it with AI.')
+    }
+
+    const response = await fetch(apiUrl('/api/apply-recommendations'), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        resume_text: document.text,
+        resume_html: document.html || '',
+        recommendations: activeScoreResult.recommendations,
+        job_title: activeScoreResult.job_title,
+      }),
+    })
+    const result = await response.json()
+    if (!response.ok || !result.success || !result.data?.text || !result.data?.html) {
+      throw new Error(result.error || 'AI resume improvement failed.')
+    }
+
+    const editedDocument: UploadedDocument = {
+      ...document,
+      text: result.data.text,
+      html: result.data.html,
+      format: 'HTML',
+      word_count: result.data.text.split(/\s+/).filter(Boolean).length,
+      char_count: result.data.text.length,
+      summary_preview: result.data.text.slice(0, 150),
+    }
+    const normalizeResumeText = (text: string) => text.replace(/\s+/g, ' ').trim()
+    if (normalizeResumeText(editedDocument.text) === normalizeResumeText(document.text)) {
+      throw new Error('I can no longer improve this resume from the current information. Add more experience, projects, skills, or measurable results, then try again.')
+    }
+    const savedDocument = await saveAccountDocument(
+      editedDocument,
+      activeDocument?.name || document.filename.replace(/\.[^/.]+$/, ''),
+      document.id,
+    )
+    setUploadedDocument(savedDocument)
+    setActiveDocument(savedDocument)
+    setGeneratedDocument(null)
+    setDocuments((prev) => [savedDocument, ...prev.filter((item) => item.id !== savedDocument.id)])
+
+    if (activeScoreResult.job_description?.trim()) {
+      const scoreResponse = await fetch(apiUrl('/api/score'), {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          resume_text: savedDocument.text,
+          job_description: activeScoreResult.job_description,
+          resume_name: savedDocument.name,
+          job_title: activeScoreResult.job_title,
+          company: activeScoreResult.company,
+        }),
+      })
+      const scorePayload = await scoreResponse.json()
+      if (!scoreResponse.ok || !scorePayload.success || !scorePayload.data) {
+        throw new Error(scorePayload.error || 'The improved resume could not be re-scored.')
+      }
+      const rescoredResult: ScoreResult = {
+        ...scorePayload.data,
+        document_id: savedDocument.id,
+      }
+      const savedScore = await saveAccountScore(rescoredResult, savedDocument.id)
+      const activeRescoredResult: ScoreResult = {
+        ...savedScore,
+        document_id: savedDocument.id,
+        job_description: rescoredResult.job_description,
+      }
+      setActiveScoreResult(activeRescoredResult)
+      setScoreHistory((prev) => [activeRescoredResult, ...prev.filter((item) => item.id !== savedScore.id)])
+    }
+    setScreen('resumeEditor')
+  }
+
+  const handleEditResumeManually = () => {
+    const document = getScoreDocument()
+    if (document) {
+      setActiveDocument(activeDocument)
+      setUploadedDocument(document)
+    }
+    setScreen('resumeEditor')
   }
 
   const handleDocumentDeleted = async (document: SavedDocument) => {
@@ -142,9 +275,21 @@ function App() {
         setUploadedDocument(null)
         setActiveDocument(null)
       }
+
     } catch (error) {
       console.error('Unable to delete document', error)
       setAccountError('The document could not be deleted from your account.')
+    }
+  }
+
+  const handleScoreDeleted = async (score: ScoreResult) => {
+    try {
+      await deleteAccountScore(score.id)
+      setScoreHistory((prev) => prev.filter((item) => item.id !== score.id))
+      if (activeScoreResult?.id === score.id) setActiveScoreResult(null)
+    } catch (error) {
+      console.error('Unable to delete score history', error)
+      setAccountError('The score history entry could not be deleted.')
     }
   }
 
@@ -185,13 +330,27 @@ function App() {
           />
         )
       case 'matchResults':
-        return <MatchResults result={activeScoreResult} onNavigate={setScreen} />
+        return (
+          <MatchResults
+            result={activeScoreResult}
+            onNavigate={setScreen}
+            onImproveResume={handleImproveResume}
+            onEditManually={handleEditResumeManually}
+          />
+        )
       case 'recommendations':
-        return <AIRecommendations recommendations={activeScoreResult?.recommendations} />
+        return (
+          <AIRecommendations
+            recommendations={activeScoreResult?.recommendations}
+            onApplyRecommendation={handleApplyRecommendation}
+            onBackToEditor={() => setScreen('resumeEditor')}
+          />
+        )
       case 'scoreHistory':
         return (
           <ScoreHistory
             history={scoreHistory}
+            onDeleteScore={handleScoreDeleted}
             onViewDetails={(entry) => {
               if (entry) setActiveScoreResult(entry)
               setScreen('matchResults')
@@ -199,14 +358,25 @@ function App() {
           />
         )
       case 'resumeEditor':
+        {
+          const editorDocument = activeDocument || generatedDocument || uploadedDocument
+          const editorRecommendations = activeScoreResult?.document_id
+            && editorDocument?.id === activeScoreResult.document_id
+            ? activeScoreResult.recommendations
+            : undefined
+
         return (
           <ResumeEditor
             initialDocument={activeDocument}
             initialContent={generatedDocument}
             onNavigate={setScreen}
             onDocumentUploaded={handleDocumentSaved}
+            recommendations={editorRecommendations}
+            onViewRecommendations={editorRecommendations ? () => setScreen('recommendations') : undefined}
+            onImproveResume={editorRecommendations ? handleImproveResume : undefined}
           />
         )
+        }
     }
   }
 

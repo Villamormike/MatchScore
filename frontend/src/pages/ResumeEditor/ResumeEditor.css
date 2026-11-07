@@ -5,9 +5,12 @@
 .document-title:hover, .document-title:focus { border-color: #dadce0; outline: 0; }
 .autosave-status { display: inline-flex; align-items: center; gap: 5px; color: #718096; font-size: 10px; }
 .autosave-status i { width: 7px; height: 7px; border-radius: 50%; background: #16ad83; }
+.ai-edit-legend { color: #087c68; font-size: 9px; font-weight: 700; }
 .editor-toolbar-actions { display: flex; gap: 7px; margin-left: auto; }
 .editor-toolbar-actions .action-button { min-height: 31px; padding: 0 10px; font-size: 9px; }
+.editor-toolbar-actions kbd { margin-left: 4px; padding: 1px 3px; border: 1px solid rgba(255,255,255,.45); border-radius: 3px; font-size: 8px; }
 .editor-upload-error { margin: 7px 0 0 35px; color: #c23b4a; font-size: 10px; }
+.editor-print-hint { margin: 6px 0 0 35px; color: #718096; font-size: 9px; }
 .document-menu-bar { display: flex; gap: 3px; padding: 4px 0; }
 .document-menu { position: relative; }
 .document-menu-bar button { border: 0; border-radius: 4px; padding: 5px 8px; color: #3c4043; background: transparent; font-size: 11px; cursor: pointer; }
@@ -25,7 +28,16 @@
 .image-toolbar-label { color: #5f6368; font-size: 10px; font-weight: 700; }
 .delete-image-button { color: #c23b4a !important; }
 .hidden-file-input { display: none; }
+.editor-content-layout { display: grid; grid-template-columns: minmax(0, 1fr) 260px; align-items: start; }
 .document-workspace { min-height: 650px; position: relative; overflow: auto; padding: 29px 25px 60px; background: #f1f3f4; }
+.editor-recommendations { position: sticky; top: 12px; max-height: 650px; overflow: auto; padding: 16px; border-left: 1px solid #e1e4e8; background: #fff; }
+.editor-recommendations > p { margin: 8px 0 14px; color: #718096; font-size: 10px; line-height: 1.5; }
+.editor-recommendation { margin-bottom: 10px; padding: 10px; border: 1px solid #dcebe7; border-radius: 6px; background: #f7fcfb; }
+.editor-recommendation strong { color: #078d81; font-size: 8px; letter-spacing: .04em; }
+.editor-recommendation h3 { margin: 5px 0; color: #24324a; font-size: 11px; }
+.editor-recommendation p { margin: 0; color: #607087; font-size: 10px; line-height: 1.5; }
+.editor-recommendations .action-button { width: 100%; margin-top: 4px; font-size: 9px; }
+.editor-recommendations .editor-ai-improve-button { margin-top: 12px; }
 .document-ruler { width: min(816px, calc(100% - 20px)); height: 18px; display: flex; justify-content: space-around; margin: 0 auto -1px; color: #80868b; font-size: 9px; }
 .document-page { width: min(816px, 100%); min-height: 1056px; box-sizing: border-box; margin: 0 auto; padding: 76px 80px; outline: 0; background: #fff; box-shadow: 0 1px 4px rgba(60,64,67,.25); font-family: Arial, sans-serif; font-size: 12pt; line-height: 1.5; }
 .document-page:empty::before { content: attr(data-placeholder); color: #9aa0a6; pointer-events: none; }
@@ -33,6 +45,24 @@
 .document-page img:focus, .document-page img.is-selected { outline: 2px solid #1a73e8; outline-offset: 3px; }
 .document-page h1 { font-size: 26pt; }.document-page h2 { font-size: 20pt; }.document-page h3 { font-size: 16pt; }
 .document-page p { margin: 0 0 10px; }
+.document-page .ai-applied-edit {
+  position: relative;
+  padding: 7px 9px;
+  border-left: 3px solid #0f9d83;
+  border-radius: 4px;
+  background: #e7f7f2;
+}
+.document-page .ai-applied-edit::before {
+  content: "Applied recommendation";
+  display: block;
+  margin-bottom: 3px;
+  color: #087c68;
+  font-size: 8pt;
+  font-weight: 700;
+}
+.document-page .ai-edit-marker {
+  display: none;
+}
 .document-page .docx-tab-row { display: grid; grid-template-columns: 161.55pt minmax(0, 1fr); align-items: start; }
 .document-page .docx-tab-cell { min-width: 0; }
 .document-page .docx-import { min-height: 100%; }
@@ -142,6 +172,8 @@
     margin: -45px -35px;
   }
 }
+@media (max-width: 1000px) { .editor-content-layout { grid-template-columns: 1fr; }.editor-recommendations { position: static; max-height: none; border-top: 1px solid #e1e4e8; border-left: 0; } }
 @media (max-width: 800px) { .document-format-bar { gap: 1px; }.document-workspace { padding: 18px 10px 40px; }.document-page { min-height: 850px; padding: 45px 35px; } }
 @media (max-width: 620px) { .editor-toolbar { flex-wrap: wrap; }.editor-toolbar-actions { width: 100%; margin-left: 35px; }.document-page { padding: 32px 22px; }.document-format-bar select[aria-label="Font family"] { width: 90px; } }
-@media print { .app-header, .editor-toolbar, .document-menu-bar, .document-format-bar, .document-ruler { display: none !important; }.document-workspace { padding: 0; background: #fff; }.document-page { width: 100%; min-height: auto; box-shadow: none; } }
+@media print { @page { margin: 0; }.app-header, .editor-toolbar, .editor-print-hint, .document-menu-bar, .document-format-bar, .document-ruler { display: none !important; }.document-workspace { padding: 0; background: #fff; }.document-page { width: 100%; min-height: auto; box-shadow: none; } }
+@media print { .document-page .ai-applied-edit { padding: 0; border-left: 0; background: transparent; }.document-page .ai-applied-edit::before { display: none; } }

@@ -20,6 +20,7 @@ export type Recommendation = {
 
 export type ScoreResult = {
   id: string
+  document_id?: string
   date: string
   timestamp: string
   job_title: string

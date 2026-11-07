@@ -1,6 +1,6 @@
-import { useEffect, useRef, useState, type ChangeEvent, type ClipboardEvent } from 'react'
+import { useCallback, useEffect, useRef, useState, type ChangeEvent, type ClipboardEvent } from 'react'
 import './ResumeEditor.css'
-import type { ScreenKey, UploadedDocument } from '../screenTypes'
+import type { Recommendation, ScreenKey, UploadedDocument } from '../screenTypes'
 import type { SavedDocument } from '../screenTypes'
 import { saveAccountDocument } from '../../lib/accountStorage'
 import { apiUrl } from '../../api'
@@ -10,6 +10,9 @@ type Props = {
   initialContent?: UploadedDocument | null
   onNavigate: (screen: ScreenKey) => void
   onDocumentUploaded: (document: SavedDocument) => void
+  recommendations?: Recommendation[]
+  onViewRecommendations?: () => void
+  onImproveResume?: () => Promise<void>
 }
 
 const commands = [
@@ -19,7 +22,7 @@ const commands = [
   { label: 'S', command: 'strikeThrough', title: 'Strikethrough' },
 ] as const
 
-function ResumeEditor({ initialDocument, initialContent, onNavigate, onDocumentUploaded }: Props) {
+function ResumeEditor({ initialDocument, initialContent, onNavigate, onDocumentUploaded, recommendations, onViewRecommendations, onImproveResume }: Props) {
   const editorRef = useRef<HTMLDivElement>(null)
   const imageInputRef = useRef<HTMLInputElement>(null)
   const documentInputRef = useRef<HTMLInputElement>(null)
@@ -31,6 +34,7 @@ function ResumeEditor({ initialDocument, initialContent, onNavigate, onDocumentU
   const [openMenu, setOpenMenu] = useState<string | null>(null)
   const [documentId, setDocumentId] = useState<string | undefined>(initialDocument?.id)
   const [saveError, setSaveError] = useState('')
+  const [isImproving, setIsImproving] = useState(false)
 
   useEffect(() => {
     const content = initialDocument || initialContent
@@ -42,7 +46,7 @@ function ResumeEditor({ initialDocument, initialContent, onNavigate, onDocumentU
     }
   }, [initialDocument, initialContent])
 
-  const saveDocument = async (document: UploadedDocument, name = documentName) => {
+  const saveDocument = useCallback(async (document: UploadedDocument, name = documentName) => {
     setSaveError('')
     setSaved(false)
     try {
@@ -54,9 +58,9 @@ function ResumeEditor({ initialDocument, initialContent, onNavigate, onDocumentU
       console.error('Unable to save document', error)
       setSaveError('Could not save this document to your account.')
     }
-  }
+  }, [documentId, documentName, onDocumentUploaded])
 
-  const saveEditorContent = () => {
+  const saveEditorContent = useCallback(() => {
     const editor = editorRef.current
     if (!editor || !editor.innerText.trim()) return
     const text = editor.innerText
@@ -71,7 +75,18 @@ function ResumeEditor({ initialDocument, initialContent, onNavigate, onDocumentU
       summary_preview: text.slice(0, 150),
       skills_preview: '',
     })
-  }
+  }, [documentName, saveDocument])
+
+  useEffect(() => {
+    const handleSaveShortcut = (event: KeyboardEvent) => {
+      if (!event.altKey || event.key.toLowerCase() !== 's') return
+      event.preventDefault()
+      saveEditorContent()
+    }
+
+    window.addEventListener('keydown', handleSaveShortcut)
+    return () => window.removeEventListener('keydown', handleSaveShortcut)
+  }, [saveEditorContent])
 
   const execute = (command: string, value?: string) => {
     editorRef.current?.focus()
@@ -165,7 +180,7 @@ function ResumeEditor({ initialDocument, initialContent, onNavigate, onDocumentU
         reader.readAsText(file)
         return
       }
-      setUploadError('Could not reach the document parser. Start the backend to import PDF or DOCX files.')
+      setUploadError(error instanceof Error ? error.message : 'The document could not be imported.')
     }
   }
 
@@ -192,21 +207,50 @@ function ResumeEditor({ initialDocument, initialContent, onNavigate, onDocumentU
     setSaved(false)
   }
 
+  const improveResume = async () => {
+    if (!onImproveResume) return
+    setIsImproving(true)
+    setSaveError('')
+    try {
+      await onImproveResume()
+    } catch (error) {
+      console.error('Unable to improve resume with AI', error)
+      setSaveError(error instanceof Error
+        ? error.message
+        : 'The AI could not improve this resume. You can continue editing manually.')
+    } finally {
+      setIsImproving(false)
+    }
+
+  }
+
+  const printResume = () => {
+    const previousTitle = document.title
+    document.title = documentName.trim() || 'Resume'
+    window.print()
+    window.setTimeout(() => {
+      document.title = previousTitle
+    }, 1000)
+  }
+
   return (
     <div className="resume-editor-page">
       <div className="editor-toolbar">
         <button className="editor-back" type="button" onClick={() => onNavigate('templates')} aria-label="Back to templates">‹</button>
         <input className="document-title" aria-label="Document name" value={documentName} onChange={(event) => { setDocumentName(event.target.value); setSaved(false) }} />
         <span className="autosave-status"><i /> {saved ? 'Saved to Cloud' : 'Unsaved changes'}</span>
+        <span className="ai-edit-legend">AI EDIT = applied recommendation</span>
         <div className="editor-toolbar-actions">
+          <button className="action-button action-primary" type="button" onClick={saveEditorContent}>Save <kbd>Alt+S</kbd></button>
           <button className="action-button action-outline" type="button" onClick={() => documentInputRef.current?.click()}>Upload file</button>
           <input ref={documentInputRef} className="hidden-file-input" type="file" accept=".pdf,.doc,.docx,.txt" onChange={handleDocumentUpload} />
-          <button className="action-button action-outline" type="button" onClick={() => window.print()}>Export PDF</button>
+          <button className="action-button action-outline" type="button" onClick={printResume}>Export PDF</button>
           <button className="action-button action-primary" type="button" onClick={() => onNavigate('jobMatches')}>Score Against Job</button>
         </div>
       </div>
       {uploadError && <p className="editor-upload-error" role="alert">{uploadError} Make sure the backend is running on port 5000.</p>}
       {saveError && <p className="editor-upload-error" role="alert">{saveError}</p>}
+      <p className="editor-print-hint">For a clean PDF, turn off “Headers and footers” in the print dialog.</p>
 
       <div className="document-menu-bar" aria-label="Document menus">
         <div className="document-menu">
@@ -214,7 +258,7 @@ function ResumeEditor({ initialDocument, initialContent, onNavigate, onDocumentU
           {openMenu === 'file' && <div className="document-menu-dropdown">
             <button type="button" onClick={() => menuAction(() => editorRef.current?.focus())}>New document</button>
             <button type="button" onClick={() => menuAction(() => documentInputRef.current?.click())}>Open / Upload file</button>
-            <button type="button" onClick={() => menuAction(() => window.print())}>Download / Export PDF</button>
+            <button type="button" onClick={() => menuAction(printResume)}>Download / Export PDF</button>
           </div>}
         </div>
         <div className="document-menu">
@@ -229,7 +273,7 @@ function ResumeEditor({ initialDocument, initialContent, onNavigate, onDocumentU
           <button type="button" aria-expanded={openMenu === 'view'} onClick={() => setOpenMenu(openMenu === 'view' ? null : 'view')}>View</button>
           {openMenu === 'view' && <div className="document-menu-dropdown">
             <button type="button" onClick={() => menuAction(() => editorRef.current?.focus())}>Focus document</button>
-            <button type="button" onClick={() => menuAction(() => window.print())}>Print preview</button>
+            <button type="button" onClick={() => menuAction(printResume)}>Print preview</button>
           </div>}
         </div>
         <div className="document-menu">
@@ -302,33 +346,58 @@ function ResumeEditor({ initialDocument, initialContent, onNavigate, onDocumentU
         </>}
       </div>
 
-      <main className="document-workspace">
-        <div className="document-ruler" aria-hidden="true"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span></div>
-        <article
-          ref={editorRef}
-          className="document-page"
-          contentEditable
-          suppressContentEditableWarning
-          spellCheck
-          data-placeholder="Start typing your document..."
-          onInput={() => setSaved(false)}
-          onPaste={handlePaste}
-          onBlur={saveEditorContent}
-          onClick={(event) => {
-            const target = event.target
-            selectedImageRef.current?.classList.remove('is-selected')
-            if (target instanceof HTMLImageElement) {
-              target.classList.add('is-selected')
-              selectedImageRef.current = target
-              setHasSelectedImage(true)
-            } else {
-              selectedImageRef.current = null
-              setHasSelectedImage(false)
-            }
-          }}
-          aria-label="Document editor"
-        />
-      </main>
+      <div className="editor-content-layout">
+        <main className="document-workspace">
+          <div className="document-ruler" aria-hidden="true"><span>0</span><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span></div>
+          <article
+            ref={editorRef}
+            className="document-page"
+            contentEditable
+            suppressContentEditableWarning
+            spellCheck
+            data-placeholder="Start typing your document..."
+            onInput={() => setSaved(false)}
+            onPaste={handlePaste}
+            onBlur={saveEditorContent}
+            onClick={(event) => {
+              const target = event.target
+              selectedImageRef.current?.classList.remove('is-selected')
+              if (target instanceof HTMLImageElement) {
+                target.classList.add('is-selected')
+                selectedImageRef.current = target
+                setHasSelectedImage(true)
+              } else {
+                selectedImageRef.current = null
+                setHasSelectedImage(false)
+              }
+            }}
+            aria-label="Document editor"
+          />
+        </main>
+        {recommendations && recommendations.length > 0 && (
+          <aside className="editor-recommendations" aria-label="Resume recommendations">
+            <span className="eyebrow">AI RECOMMENDATIONS</span>
+            <p>Review these suggestions while editing your resume.</p>
+            {recommendations.map((recommendation) => (
+              <article className="editor-recommendation" key={recommendation.title}>
+                <strong>{recommendation.section}</strong>
+                <h3>{recommendation.title}</h3>
+                <p>{recommendation.suggestion}</p>
+              </article>
+            ))}
+            {onImproveResume && (
+              <button className="action-button action-primary editor-ai-improve-button" type="button" disabled={isImproving} onClick={() => void improveResume()}>
+                {isImproving ? 'AI is improving resume...' : 'Let AI improve resume'}
+              </button>
+            )}
+            {onViewRecommendations && (
+              <button className="action-button action-outline" type="button" onClick={onViewRecommendations}>
+                View full recommendations
+              </button>
+            )}
+          </aside>
+        )}
+      </div>
     </div>
   )
 }

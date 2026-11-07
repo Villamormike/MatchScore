@@ -126,24 +126,39 @@ Degree — School Name | Graduation Year"""
     return {"title": requested_style, "text": text, "html": html}
 
 
-def _get_gemini_api_key() -> str:
-    """Read the provider key from the environment or the local key file."""
+def _get_gemini_api_keys() -> List[str]:
+    """Read ordered provider keys from environment variables or the local key file."""
+    configured_keys = os.getenv("GEMINI_API_KEYS", "").strip()
+    if configured_keys:
+        return [
+            key.strip()
+            for key in re.split(r"[\r\n,]+", configured_keys)
+            if key.strip()
+        ]
+
     configured_key = os.getenv("GEMINI_API_KEY", "").strip()
     if configured_key:
-        return configured_key
+        return [configured_key]
 
     key_path = Path(__file__).with_name("api_key")
     try:
-        key_value = key_path.read_text(encoding="utf-8").strip()
+        key_lines = key_path.read_text(encoding="utf-8").splitlines()
     except FileNotFoundError:
-        return ""
+        return []
     except OSError as exc:
         logger.warning("Unable to read Gemini API key file: %s", exc)
-        return ""
+        return []
 
-    if ":" in key_value:
-        key_value = key_value.split(":", 1)[1].strip()
-    return key_value
+    keys: List[str] = []
+    for line in key_lines:
+        key_value = line.strip()
+        if not key_value or key_value.startswith("#"):
+            continue
+        if ":" in key_value:
+            key_value = key_value.split(":", 1)[1].strip()
+        if key_value:
+            keys.append(key_value)
+    return keys
 
 
 def _parse_json_response(text: str) -> Dict[str, Any]:
@@ -160,8 +175,8 @@ def _parse_json_response(text: str) -> Dict[str, Any]:
 
 def _request_gemini_json(prompt: str, timeout: int) -> Dict[str, Any] | None:
     """Request JSON from Gemini with bounded generation and transient retries."""
-    api_key = _get_gemini_api_key()
-    if not api_key:
+    api_keys = _get_gemini_api_keys()
+    if not api_keys:
         return None
 
     body = json.dumps({
@@ -178,29 +193,43 @@ def _request_gemini_json(prompt: str, timeout: int) -> Dict[str, Any] | None:
     configured_fallback = os.getenv("GEMINI_FALLBACK_MODEL", "gemini-3.6-flash").strip()
     models = list(dict.fromkeys(model for model in (configured_model, configured_fallback) if model))
 
-    for model in models:
-        endpoint = (
-            "https://generativelanguage.googleapis.com/v1beta/models/"
-            f"{quote(model, safe='')}:generateContent"
-        )
-        try:
-            request = Request(
-                f"{endpoint}?key={quote(api_key)}",
-                data=body,
-                headers={"Content-Type": "application/json"},
-                method="POST",
+    for key_index, api_key in enumerate(api_keys, start=1):
+        for model in models:
+            endpoint = (
+                "https://generativelanguage.googleapis.com/v1beta/models/"
+                f"{quote(model, safe='')}:generateContent"
             )
-            with urlopen(request, timeout=timeout) as response:
-                response_data = json.loads(response.read().decode("utf-8"))
-            model_text = response_data["candidates"][0]["content"]["parts"][0]["text"]
-            return _parse_json_response(model_text)
-        except HTTPError as exc:
-            error_body = exc.read().decode("utf-8", errors="replace")
-            logger.warning("Gemini model %s returned HTTP %s: %s", model, exc.code, error_body[:300])
-            continue
-        except (URLError, TimeoutError, KeyError, IndexError, TypeError, ValueError) as exc:
-            logger.warning("Gemini model %s failed: %s", model, exc)
-            continue
+            try:
+                request = Request(
+                    f"{endpoint}?key={quote(api_key)}",
+                    data=body,
+                    headers={"Content-Type": "application/json"},
+                    method="POST",
+                )
+                with urlopen(request, timeout=timeout) as response:
+                    response_data = json.loads(response.read().decode("utf-8"))
+                model_text = response_data["candidates"][0]["content"]["parts"][0]["text"]
+                parsed_response = _parse_json_response(model_text)
+                logger.info(
+                    "Gemini request succeeded with key %d and model %s",
+                    key_index,
+                    model,
+                )
+                return parsed_response
+            except HTTPError as exc:
+                error_body = exc.read().decode("utf-8", errors="replace")
+                logger.warning(
+                    "Gemini key %d with model %s returned HTTP %s: %s",
+                    key_index,
+                    model,
+                    exc.code,
+                    error_body[:300],
+                )
+                continue
+            except (URLError, TimeoutError, KeyError, IndexError, TypeError, ValueError) as exc:
+                logger.warning("Gemini key %d with model %s failed: %s", key_index, model, exc)
+                continue
+    logger.error("Gemini request failed after trying %d configured key(s) and %d model(s)", len(api_keys), len(models))
     return None
 
 
@@ -241,8 +270,7 @@ def generate_ai_guidance(
     job_title: str,
 ) -> Dict[str, Any] | None:
     """Ask Gemini for tailored guidance, returning None when it cannot be used."""
-    api_key = _get_gemini_api_key()
-    if not api_key:
+    if not _get_gemini_api_keys():
         return None
 
     prompt = f"""
@@ -290,8 +318,7 @@ JOB POSTING:
 
 def generate_ai_layout(prompt: str) -> Dict[str, str] | None:
     """Generate an editable resume layout from a user's design request."""
-    api_key = _get_gemini_api_key()
-    if not api_key:
+    if not _get_gemini_api_keys():
         logger.warning("Gemini layout unavailable; using local layout fallback because no API key is configured")
         return _fallback_ai_layout(prompt)
 
@@ -321,6 +348,54 @@ professional, readable, and appropriate for the requested role or style.
         logger.warning("Gemini layout response was incomplete; using local layout fallback")
         return _fallback_ai_layout(prompt)
     return {"title": title.strip(), "text": text.strip(), "html": html.strip()}
+
+
+def generate_ai_resume_edit(
+    resume_text: str,
+    resume_html: str,
+    recommendations: List[Dict[str, Any]],
+    job_title: str,
+) -> Dict[str, str] | None:
+    """Rewrite the complete resume using all recommendations without inventing facts."""
+    prompt = f"""
+Improve this complete resume for the role "{job_title}" using every recommendation below.
+Return ONLY valid JSON with this exact shape:
+{{
+  "text": "The complete improved resume as plain text",
+  "html": "The complete improved resume as editable HTML"
+}}
+
+Rules:
+- Preserve all truthful facts, names, dates, projects, education, and skills.
+- Do not invent experience, employers, credentials, metrics, or technologies.
+- Incorporate recommendations naturally into the most relevant existing sections.
+- Treat the recommendation title, reason, and suggestion as editing guidance, not
+  resume text. Rewrite the underlying idea as a natural resume bullet or sentence.
+- Never copy phrases such as "For X, add:", "specify:", "mention:", "highlight:",
+  "add:", or "recommendation" into the resume.
+- Remove instruction wording such as "For X, add:" and do not include AI labels,
+  review notes, explanations, or recommendation metadata in the resume.
+- Keep the complete original resume; do not return only changed sections.
+- The HTML may use only h1, h2, h3, h4, p, ul, ol, li, strong, em, hr, and span.
+
+RECOMMENDATIONS:
+{json.dumps(recommendations[:6], ensure_ascii=False)}
+
+RESUME TEXT:
+{resume_text[:16000]}
+
+RESUME HTML:
+{resume_html[:24000]}
+"""
+    response = _request_gemini_json(prompt, timeout=60)
+    if response is None:
+        return None
+    text = response.get("text")
+    html = response.get("html")
+    if not all(isinstance(value, str) and value.strip() for value in (text, html)):
+        logger.warning("Gemini resume edit response was incomplete")
+        return None
+    return {"text": text.strip(), "html": html.strip()}
 
 
 def generate_explanation(

@@ -1,10 +1,13 @@
 import './MatchResults.css'
 import type { CSSProperties } from 'react'
+import { useState } from 'react'
 import type { ScreenKey, ScoreResult } from '../screenTypes'
 
 type Props = {
   result?: ScoreResult | null
   onNavigate: (screen: ScreenKey) => void
+  onImproveResume: () => Promise<void>
+  onEditManually: () => void
 }
 
 const defaultResult: ScoreResult = {
@@ -25,7 +28,7 @@ const defaultResult: ScoreResult = {
   recommendations: []
 }
 
-function MatchResults({ result, onNavigate }: Props) {
+function MatchResults({ result, onNavigate, onImproveResume, onEditManually }: Props) {
   const current = result || defaultResult
   const scoreNum = Math.min(Math.max(Number.isFinite(current.overall_score) ? current.overall_score : 0, 0), 100)
   const color = current.color || (scoreNum >= 75 ? 'green' : scoreNum >= 55 ? 'amber' : 'rose')
@@ -35,6 +38,23 @@ function MatchResults({ result, onNavigate }: Props) {
     background: scoreNum === 0
       ? gaugeHex
       : `conic-gradient(${gaugeHex} 0% ${scoreNum}%, #e2e8f0 ${scoreNum}% 100%)`
+  }
+  const [isImproving, setIsImproving] = useState(false)
+  const [improveError, setImproveError] = useState('')
+
+  const handleImprove = async () => {
+    setIsImproving(true)
+    setImproveError('')
+    try {
+      await onImproveResume()
+    } catch (error) {
+      console.error('Unable to improve resume with AI', error)
+      setImproveError(error instanceof Error
+        ? error.message
+        : 'The AI could not improve this resume. You can edit it manually or try again.')
+    } finally {
+      setIsImproving(false)
+    }
   }
 
   return (
@@ -119,6 +139,30 @@ function MatchResults({ result, onNavigate }: Props) {
             )}
           </div>
         </article>
+      </section>
+      <section className="resume-improvement-panel surface" aria-label="Resume improvement options">
+        <div className="resume-improvement-copy">
+          <span className="explanation-label">✧ &nbsp; Resume improvement options</span>
+          <h2>Choose how to use these recommendations</h2>
+          <p>AI can revise the complete resume using all {current.recommendations.length} recommendations, or you can open the editor and make the changes yourself.</p>
+          <div className="inline-recommendations">
+            {current.recommendations.map((recommendation) => (
+              <div className="inline-recommendation" key={recommendation.title}>
+                <strong>{recommendation.section}</strong>
+                <span>{recommendation.title}</span>
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="resume-improvement-actions">
+          <button className="action-button action-primary" type="button" disabled={isImproving} onClick={() => void handleImprove()}>
+            {isImproving ? 'Improving resume...' : 'Improve entire resume with AI'}
+          </button>
+          <button className="action-button action-outline" type="button" onClick={onEditManually}>
+            Edit manually
+          </button>
+        </div>
+        {improveError && <p className="recommendation-error" role="alert">{improveError}</p>}
       </section>
     </div>
   )

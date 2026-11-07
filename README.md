@@ -36,7 +36,7 @@ npm run dev
 npm run build
 ```
 
-Frontend: `http://localhost:5173`  
+Frontend: `http://localhost:5173`
 API health check: `http://localhost:5000/api/health`
 
 ## AI scoring guidance
@@ -45,7 +45,12 @@ The match score itself is calculated locally with TF-IDF, cosine similarity,
 and skill matching. The backend uses Gemini to tailor the score explanation and
 resume recommendations when a key is available. Configure the key either as
 `GEMINI_API_KEY` in `backend/.env`, or place it in `backend/api_key` as a
-single line such as `Gemini: YOUR_KEY`. The key file is ignored by Git.
+single line such as `Gemini: YOUR_KEY`. The key file is ignored by Git. It may contain one key per line, optionally
+with a label before a colon (for example `Primary: YOUR_KEY`). Keys are tried
+in file order; if a key or model request fails, the next configured key is
+automatically attempted. You can also provide a comma- or newline-separated
+`GEMINI_API_KEYS` value in the environment. `GEMINI_API_KEY` remains supported
+as a single-key fallback.
 The default model is `gemini-3.8-flash`; override it with `GEMINI_MODEL` if
 your project uses a different Gemini model.
 

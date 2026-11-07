@@ -5,21 +5,45 @@ import type { ScoreResult } from '../screenTypes'
 const ranges = ['Last 7 Days', 'Last 30 Days', 'Last 3 Months', 'All Time'] as const
 type Range = (typeof ranges)[number]
 
-const lineByRange: Record<Range, string> = {
-  'Last 7 Days': 'M22 150 L170 126 L318 115 L466 83 L614 98 L762 51 L910 27',
-  'Last 30 Days': 'M22 145 L170 117 L318 90 L466 68 L614 91 L762 42 L910 18',
-  'Last 3 Months': 'M22 153 L170 127 L318 105 L466 111 L614 72 L762 50 L910 31',
-  'All Time': 'M22 160 L170 139 L318 129 L466 82 L614 91 L762 44 L910 21',
-}
-
 type Props = {
   history?: ScoreResult[]
   onViewDetails: (entry?: ScoreResult) => void
+  onDeleteScore: (entry: ScoreResult) => Promise<void>
 }
 
-function ScoreHistory({ history, onViewDetails }: Props) {
+function ScoreHistory({ history, onViewDetails, onDeleteScore }: Props) {
   const [range, setRange] = useState<Range>('Last 30 Days')
   const entries = history || []
+  const [now] = useState(() => Date.now())
+  const rangeDuration: Record<Range, number | null> = {
+    'Last 7 Days': 7,
+    'Last 30 Days': 30,
+    'Last 3 Months': 90,
+    'All Time': null,
+  }
+  const filteredEntries = entries
+    .map((entry) => ({ entry, timestamp: Date.parse(entry.date) }))
+    .filter(({ timestamp }) => {
+      const days = rangeDuration[range]
+      return days === null || Number.isNaN(timestamp) || now - timestamp <= days * 24 * 60 * 60 * 1000
+    })
+    .sort((left, right) => {
+      if (Number.isNaN(left.timestamp) || Number.isNaN(right.timestamp)) return 0
+      return left.timestamp - right.timestamp
+    })
+  const chartPoints = filteredEntries.map(({ entry }, index) => {
+    const x = filteredEntries.length === 1 ? 470 : 22 + (index * 888) / (filteredEntries.length - 1)
+    const score = Math.min(Math.max(entry.overall_score || 0, 0), 100)
+    const y = 170 - score * 1.4
+    return { x, y, score }
+  })
+  const linePath = chartPoints.map(({ x, y }, index) => `${index === 0 ? 'M' : 'L'}${x} ${y}`).join(' ')
+  const chartFillPath = chartPoints.length > 0
+    ? `${linePath} L${chartPoints[chartPoints.length - 1].x} 170 L${chartPoints[0].x} 170 Z`
+    : ''
+  const chartLabels = filteredEntries.length > 0
+    ? filteredEntries.slice(0, 5).map(({ entry }) => entry.date)
+    : []
 
   return (
     <div className="score-history-page">
@@ -49,7 +73,7 @@ function ScoreHistory({ history, onViewDetails }: Props) {
           </div>
           <span><i /> Resume Scores</span>
         </div>
-        <svg className="score-chart" viewBox="0 0 940 180" preserveAspectRatio="none" role="img" aria-label={`${range} resume scores trend chart`}>
+        {chartPoints.length > 0 ? <svg className="score-chart" viewBox="0 0 940 180" preserveAspectRatio="none" role="img" aria-label={`${range} resume scores trend chart`}>
           <defs>
             <linearGradient id="chart-fill" x1="0" x2="0" y1="0" y2="1">
               <stop offset="0" stopColor="#0e9c8e" stopOpacity=".09" />
@@ -59,19 +83,16 @@ function ScoreHistory({ history, onViewDetails }: Props) {
           {[30, 65, 100, 135, 170].map((y) => (
             <line className="chart-grid-line" key={y} x1="20" x2="920" y1={y} y2={y} />
           ))}
-          <path d={`${lineByRange[range]} L910 170 L22 170 Z`} fill="url(#chart-fill)" />
-          <path d={lineByRange[range]} className="chart-line" />
-          {lineByRange[range].match(/\d+ \d+/g)?.map((point, index) => {
-            const [cx, cy] = point.split(' ').map(Number)
-            return <circle className="chart-dot" key={`${cx}-${cy}-${index}`} cx={cx} cy={cy} r="3" />
-          })}
-        </svg>
+          <path d={chartFillPath} fill="url(#chart-fill)" />
+          <path d={linePath} className="chart-line" />
+          {chartPoints.map(({ x, y, score }) => (
+            <circle className="chart-dot" key={`${x}-${y}`} cx={x} cy={y} r="4">
+              <title>{score}%</title>
+            </circle>
+          ))}
+        </svg> : <div className="score-chart-empty">No scores in this range yet. Score a resume to build your account trend.</div>}
         <div className="chart-axis-labels">
-          <span>Oct 1</span>
-          <span>Oct 7</span>
-          <span>Oct 14</span>
-          <span>Oct 21</span>
-          <span>Oct 28</span>
+          {chartLabels.map((label) => <span key={label}>{label}</span>)}
         </div>
       </section>
 
@@ -97,9 +118,22 @@ function ScoreHistory({ history, onViewDetails }: Props) {
                   <td><span className={`match-pill match-pill--${entry.color}`}>{entry.score} Match</span></td>
                   <td>{entry.version}</td>
                   <td>
-                    <button className="text-link" type="button" onClick={() => onViewDetails(entry)}>
-                      View Details
-                    </button>
+                    <div className="history-actions">
+                      <button className="text-link" type="button" onClick={() => onViewDetails(entry)}>
+                        View Details
+                      </button>
+                      <button
+                        className="text-link text-link--danger"
+                        type="button"
+                        onClick={() => {
+                          if (window.confirm(`Delete the score history for "${entry.role}"?`)) {
+                            void onDeleteScore(entry)
+                          }
+                        }}
+                      >
+                        Delete
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))}
