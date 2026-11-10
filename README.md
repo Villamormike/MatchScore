@@ -41,6 +41,39 @@ npm run build
 Frontend: `http://localhost:5173`
 API health check: `http://localhost:5000/api/health`
 
+## Deployment
+
+The repository includes safe deployment configuration for the recommended split
+deployment:
+
+- Vercel serves the React frontend using `vercel.json`.
+- Render runs the Flask API using `render.yaml`.
+- Supabase continues to provide authentication and account persistence.
+
+### Deploy the backend to Render
+
+1. Create a new Render Web Service from this repository.
+2. Use the `render.yaml` Blueprint, or set the backend root directory to
+   `backend`.
+3. Add the Gemini variables in Render's environment settings. Never commit
+   `backend/api_key` or real credentials.
+4. Confirm `https://your-render-service.onrender.com/api/health` returns an
+   `ok` status.
+
+### Deploy the frontend to Vercel
+
+1. Import the repository into Vercel.
+2. Keep the repository root as the project root; `vercel.json` supplies the
+   frontend build and output settings.
+3. Add these Vercel environment variables:
+   - `VITE_SUPABASE_URL`
+   - `VITE_SUPABASE_ANON_KEY`
+   - `VITE_API_BASE_URL` set to the deployed Render API URL
+4. Deploy and add the Vercel URL to Supabase's allowed site and redirect URLs.
+
+The local frontend still uses its existing `.env.local` values, so this setup
+does not change local development behavior.
+
 ## Implemented functionality
 
 - Supabase email/password authentication and email verification
