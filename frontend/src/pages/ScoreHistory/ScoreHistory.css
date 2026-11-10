@@ -75,6 +75,15 @@
   margin-top: 9px;
 }
 
+.score-chart-empty {
+  min-height: 180px;
+  display: grid;
+  place-items: center;
+  color: #94a3b8;
+  font-size: 11px;
+  font-style: italic;
+}
+
 .chart-grid-line {
   stroke: #e8edf2;
   stroke-dasharray: 3 4;
@@ -164,6 +173,16 @@
   text-underline-offset: 2px;
 }
 
+.history-actions {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.scoring-table .text-link--danger {
+  color: #c23b4a;
+}
+
 @media (max-width: 720px) {
   .history-ranges {
     width: 100%;
@@ -178,4 +197,44 @@
   .score-chart {
     height: 160px;
   }
+}
+
+.dark-mode .history-ranges {
+  border-color: #465362;
+  background: #252e38;
+}
+
+.dark-mode .history-ranges button {
+  color: #aab8c7;
+}
+
+.dark-mode .trend-card-heading h2,
+.dark-mode .scoring-log-section h2,
+.dark-mode .scoring-table td strong {
+  color: #eef3f8;
+}
+
+.dark-mode .trend-card-heading p,
+.dark-mode .trend-card-heading > span,
+.dark-mode .chart-axis-labels,
+.dark-mode .scoring-table th,
+.dark-mode .scoring-table td {
+  color: #aab8c7;
+}
+
+.dark-mode .chart-grid-line {
+  stroke: #3b4652;
+}
+
+.dark-mode .chart-dot {
+  fill: #252e38;
+}
+
+.dark-mode .scoring-table th {
+  background: #252e38;
+  border-color: #3b4652;
+}
+
+.dark-mode .scoring-table td {
+  border-color: #303943;
 }

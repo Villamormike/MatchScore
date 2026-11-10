@@ -62,16 +62,29 @@
   max-width: 880px;
 }
 
+.explanation-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+
 .explanation-label {
   display: inline-flex;
   align-items: center;
   padding: 7px 10px;
   border-radius: 6px;
-  margin-bottom: 12px;
   color: #078d81;
   background: #edfaf7;
   font-size: 10px;
   font-weight: 750;
+}
+
+.no-terms-note {
+  color: #94a3b8;
+  font-size: 9px;
+  font-style: italic;
 }
 
 .score-explanation p {
@@ -132,6 +145,26 @@
 .keyword-list--amber span { color: #ba850c; background: #fff4d2; }
 .keyword-list--teal span { color: #078f85; background: #e8f8f6; }
 
+.resume-improvement-panel {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 24px;
+  margin-top: 22px;
+  padding: 22px;
+}
+
+.resume-improvement-copy { max-width: 720px; }
+.resume-improvement-copy h2 { margin: 12px 0 7px; color: #18243a; font-size: 17px; }
+.resume-improvement-copy p { margin: 0; color: #607087; font-size: 11px; line-height: 1.65; }
+.inline-recommendations { display: grid; gap: 6px; margin-top: 14px; }
+.inline-recommendation { display: flex; gap: 8px; align-items: baseline; color: #607087; font-size: 10px; }
+.inline-recommendation strong { flex: 0 0 auto; color: #078d81; font-size: 8px; letter-spacing: .04em; }
+.resume-improvement-actions { display: flex; flex-wrap: wrap; justify-content: flex-end; gap: 8px; }
+.resume-improvement-actions .action-button { min-height: 36px; font-size: 10px; }
+.resume-improvement-panel .recommendation-error { position: absolute; right: 22px; bottom: -25px; margin: 0; color: #c23b4a; font-size: 10px; }
+
 @media (max-width: 800px) {
   .result-heading {
     align-items: flex-start;
@@ -149,10 +182,52 @@
   .keyword-groups {
     grid-template-columns: 1fr;
   }
+
+  .resume-improvement-panel {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .resume-improvement-actions { justify-content: flex-start; }
 }
 
 @media (max-width: 500px) {
   .result-actions .action-button {
     flex: 1 1 40%;
   }
+}
+
+.dark-mode .score-gauge-inner {
+  background: #252e38;
+}
+
+.dark-mode .score-gauge-inner strong,
+.dark-mode .resume-improvement-copy h2 {
+  color: #eef3f8;
+}
+
+.dark-mode .score-gauge-inner span,
+.dark-mode .score-explanation p,
+.dark-mode .inline-recommendation {
+  color: #aab8c7;
+}
+
+.dark-mode .explanation-label {
+  color: #9ce4da;
+  background: #214b47;
+}
+
+.dark-mode .keyword-list--green span {
+  color: #8be5bb;
+  background: #214b3d;
+}
+
+.dark-mode .keyword-list--amber span {
+  color: #f4d276;
+  background: #4a4023;
+}
+
+.dark-mode .keyword-list--teal span {
+  color: #9ce4da;
+  background: #214b47;
 }

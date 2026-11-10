@@ -1,0 +1,32 @@
+# Python Machine Learning Engineer
+Vertex Analytics Philippines
+Cebu City, Cebu (Hybrid)
+
+Information & Communication Technology
+Full time
+
+₱55,000 – ₱75,000 per month
+
+## About the role
+
+We are looking for a Python Machine Learning Engineer to build practical
+computer vision and natural language systems for business applications. You
+will work with data scientists and product engineers to turn research
+prototypes into reliable software.
+
+## Duties and responsibilities
+
+- Develop and maintain machine learning models using Python and PyTorch.
+- Prepare datasets, write evaluation scripts, and improve model accuracy.
+- Build computer vision pipelines for image and video classification.
+- Expose trained models through REST APIs and integrate them into web products.
+- Track experiments, document results, and communicate technical findings.
+- Write clean, tested code and participate in peer reviews.
+
+## Qualifications
+
+- Bachelor’s degree in Computer Engineering, Computer Science, or a related field.
+- Experience with Python, PyTorch, machine learning, and data preprocessing.
+- Understanding of neural networks, model evaluation, and software engineering.
+- Familiarity with Git, Linux, REST APIs, and SQL is an advantage.
+- Strong problem-solving skills and willingness to learn.

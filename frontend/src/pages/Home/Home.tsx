@@ -16,6 +16,21 @@ function Home({ onGetStarted, onSignIn }: Props) {
   const [animatedScore, setAnimatedScore] = useState(0)
 
   useEffect(() => {
+    const revealItems = document.querySelectorAll<HTMLElement>('[data-home-reveal]')
+    const observer = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          entry.target.classList.add('is-visible')
+          observer.unobserve(entry.target)
+        }
+      })
+    }, { threshold: 0.18 })
+
+    revealItems.forEach((item) => observer.observe(item))
+    return () => observer.disconnect()
+  }, [])
+
+  useEffect(() => {
     const duration = 1400
     const targetScore = 78
     const startTime = performance.now()
@@ -45,7 +60,7 @@ function Home({ onGetStarted, onSignIn }: Props) {
         <div className="home-nav-links">
           <a href="#how-it-works">How it works</a>
           <a href="#features">Features</a>
-          <a href="#stories">Stories</a>
+          <a href="#project">About the project</a>
         </div>
         <div className="home-nav-actions">
           <button className="home-sign-in" type="button" onClick={onSignIn}>Sign in</button>
@@ -62,7 +77,7 @@ function Home({ onGetStarted, onSignIn }: Props) {
             <button className="home-primary-button" type="button" onClick={onGetStarted}>Optimize my resume <span>→</span></button>
             <button className="home-secondary-button" type="button" onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}>See how it works <span>↓</span></button>
           </div>
-          <div className="home-proof"><span className="proof-avatars"><i>AM</i><i>JC</i><i>SK</i></span><span><strong>10,000+</strong> early-career professionals are building with MatchScore</span></div>
+          <div className="home-proof"><span className="proof-project-mark" aria-hidden="true">MS</span><span><strong>Understand your match</strong> and improve your next application</span></div>
         </div>
         <div className="home-hero-visual" aria-label="Resume match score preview">
           <div className="score-preview">
@@ -79,19 +94,19 @@ function Home({ onGetStarted, onSignIn }: Props) {
         </div>
       </section>
 
-      <section className="home-trusted">
-        <span>Trusted by people heading to</span>
-        <div><strong>GOOGLE</strong><strong>stripe</strong><strong>notion</strong><strong>Vercel</strong><strong>Figma</strong></div>
+      <section className="home-trusted home-scroll-reveal" id="project" data-home-reveal>
+        <span>Built using</span>
+        <div><strong>React</strong><strong>TypeScript</strong><strong>Flask</strong><strong>Supabase</strong><strong>TF-IDF</strong></div>
       </section>
 
-      <section className="home-section home-how" id="how-it-works">
+      <section className="home-section home-how home-scroll-reveal" id="how-it-works" data-home-reveal>
         <div className="home-section-heading"><p className="home-kicker">A clearer path forward</p><h2>Everything you need to<br /><em>move ahead.</em></h2></div>
         <div className="home-steps">
           {steps.map((step) => <article className="home-step" key={step.number}><span>{step.number}</span><h3>{step.title}</h3><p>{step.text}</p></article>)}
         </div>
       </section>
 
-      <section className="home-feature" id="features">
+      <section className="home-feature home-scroll-reveal" id="features" data-home-reveal>
         <div className="feature-visual" aria-label="Animated resume and job matching visualization">
           <span className="feature-window-dot" /><span className="feature-window-dot" /><span className="feature-window-dot" />
           <div className="match-source match-source--resume"><small>YOUR RESUME</small><strong>Alex Mercer</strong><span>React · UX · TypeScript</span><i /><i /><i /></div>
@@ -102,11 +117,11 @@ function Home({ onGetStarted, onSignIn }: Props) {
         <div className="feature-copy"><p className="home-kicker">More than a score</p><h2>Turn feedback into<br /><em>forward motion.</em></h2><p>Our matching engine helps you understand the gap between where your resume is and where it could be, so you can close it one clear step at a time.</p><ul><li><span>✓</span> See the skills employers are looking for</li><li><span>✓</span> Get recommendations written for you</li><li><span>✓</span> Track your progress across every application</li></ul><button className="home-text-button" type="button" onClick={onGetStarted}>Explore MatchScore <span>→</span></button></div>
       </section>
 
-      <section className="home-quote" id="stories"><p>“MatchScore helped me stop guessing and start applying with confidence. The feedback is simple, specific, and actually useful.”</p><span><i>JL</i> Jordan Lee <small>• Product Designer</small></span></section>
+      <section className="home-quote home-scroll-reveal" aria-label="Founder quote" data-home-reveal><p>“MatchScore helps me stop guessing and start applying with confidence. The feedback is simple, specific, and actually useful.”</p><span><i>MV</i> Michael Villamor <small>• Creator of MatchScore</small></span></section>
 
-      <section className="home-cta"><p className="home-kicker">Your next chapter starts here</p><h2>Ready to make your<br /><em>next move?</em></h2><button className="home-primary-button" type="button" onClick={onGetStarted}>Get started for free <span>→</span></button><small>No credit card required. Your first resume analysis is on us.</small></section>
+      <section className="home-cta home-scroll-reveal" data-home-reveal><p className="home-kicker">Your next chapter starts here</p><h2>Ready to make your<br /><em>next move?</em></h2><button className="home-primary-button" type="button" onClick={onGetStarted}>Get started for free <span>→</span></button><small>No credit card required. Your first resume analysis is on us.</small></section>
 
-      <footer className="home-footer"><span className="home-brand"><span className="brand-mark"><span /></span><span>MatchScore</span></span><span>© 2026 MatchScore Inc.</span><div><a href="#features">Privacy</a><a href="#features">Terms</a><a href="#features">Contact</a></div></footer>
+      <footer className="home-footer"><span className="home-brand"><span className="brand-mark"><span /></span><span>MatchScore</span></span><span>© 2026 MatchScore</span><div><a href="#features">Features</a><a href="#how-it-works">How it works</a><a href="#project">About</a></div></footer>
     </main>
   )
 }

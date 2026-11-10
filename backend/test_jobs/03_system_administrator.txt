@@ -1,0 +1,30 @@
+# System Administrator
+Pacific Cloud Services Inc.
+Cebu City, Cebu
+
+Networks & Systems Administration (Information & Communication Technology)
+Full time
+
+## About the role
+
+The System Administrator is responsible for reliable servers, cloud hosting,
+deployment automation, monitoring, backups, security, and technical support
+for distributed teams.
+
+## Key responsibilities
+
+- Configure and maintain Linux servers, cloud services, and virtual machines.
+- Manage Docker containers, domains, DNS records, SSL certificates, and VPN access.
+- Build and maintain CI/CD pipelines and automate repetitive operations.
+- Monitor uptime, performance, logs, and security alerts.
+- Maintain backup, restore, and disaster recovery procedures.
+- Manage user accounts, access rights, firewalls, keys, and security patches.
+- Troubleshoot network, workstation, hosting, and production incidents.
+- Keep infrastructure documentation, runbooks, and asset records current.
+
+## Qualifications
+
+- Experience administering Linux systems and cloud infrastructure.
+- Practical knowledge of Docker, networking, DNS, VPN, monitoring, and backups.
+- Familiarity with AWS, Git, automation scripts, and CI/CD.
+- Strong documentation, communication, and incident-response skills.

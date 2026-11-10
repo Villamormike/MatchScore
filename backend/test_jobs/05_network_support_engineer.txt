@@ -1,0 +1,32 @@
+# Network and IT Support Engineer
+Island Connect BPO
+Cebu, Central Visayas
+
+Information Technology Support
+Full time
+
+₱35,000 – ₱45,000 per month
+
+## About the role
+
+We are seeking a Network and IT Support Engineer to keep office and remote
+technology reliable. The role combines network administration, user support,
+asset management, and security.
+
+## Duties and responsibilities
+
+- Configure and troubleshoot LAN, Wi-Fi, routers, switches, VPN, and firewalls.
+- Provide technical support for laptops, accounts, software, and email.
+- Manage user access, passwords, endpoint security, and device inventory.
+- Monitor network performance and resolve connectivity incidents.
+- Document tickets, configurations, procedures, and knowledge-base articles.
+- Assist with backups, system updates, and disaster recovery tests.
+- Coordinate with developers and cloud administrators during deployments.
+
+## Qualifications
+
+- Degree or equivalent experience in Computer Engineering, Information
+  Technology, or a related discipline.
+- Familiarity with Cisco Packet Tracer, TCP/IP, DNS, DHCP, and networking.
+- Strong troubleshooting, customer service, and documentation skills.
+- Experience with Linux, cloud services, scripting, or automation is a plus.

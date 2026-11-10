@@ -88,6 +88,28 @@
   min-width: 0;
 }
 
+.document-open-button {
+  display: block;
+  width: 100%;
+  padding: 0;
+  border: 0;
+  color: inherit;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+}
+
+.document-delete-button {
+  margin-top: 12px;
+  padding: 5px 9px;
+  border: 1px solid #f0c8cc;
+  border-radius: 5px;
+  color: #c4515c;
+  background: #fff7f7;
+  font-size: 10px;
+  cursor: pointer;
+}
+
 .document-card-top,
 .document-actions {
   display: flex;
@@ -260,6 +282,65 @@
 .banner-arrow {
   margin-left: auto;
   font-size: 17px;
+}
+
+.dark-mode .stat-label,
+.dark-mode .section-title-row h2 {
+  color: #b8c5d3;
+}
+
+.dark-mode .stat-card strong,
+.dark-mode .document-card h3,
+.dark-mode .recent-match-copy strong {
+  color: #f0f4f8;
+}
+
+.dark-mode .stat-card small,
+.dark-mode .document-note,
+.dark-mode .document-time,
+.dark-mode .recent-match-copy small {
+  color: #aab8c7;
+}
+
+.dark-mode .stat-icon {
+  color: #77ded2;
+  background: #244b47;
+}
+
+.dark-mode .document-delete-button {
+  border-color: #70464e;
+  color: #ffabb2;
+  background: #3a282d;
+}
+
+.dark-mode .document-kind {
+  color: #b9c6d4;
+  background: #303943;
+}
+
+.dark-mode .document-actions {
+  border-top-color: #3b4652;
+}
+
+.dark-mode .more-button {
+  border-color: #465362;
+  background: #2a323c;
+  color: #b8c5d3;
+}
+
+.dark-mode .match-pill--green {
+  color: #8be5bb;
+  background: #214b3d;
+}
+
+.dark-mode .match-pill--amber {
+  color: #f4d276;
+  background: #4a4023;
+}
+
+.dark-mode .match-pill--rose {
+  color: #ffabb2;
+  background: #4a2d34;
 }
 
 @media (max-width: 920px) {

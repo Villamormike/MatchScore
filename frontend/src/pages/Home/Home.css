@@ -17,3 +17,50 @@
 .match-result{position:absolute;left:50%;bottom:16%;padding:7px 10px;border-radius:5px;background:#d9faf2;color:#087d73;font-size:8px;font-weight:800;transform:translateX(-50%);animation:result-in 3.6s ease-in-out infinite;z-index:4}.match-result span{margin-right:4px}
 @keyframes resume-float{0%,100%{transform:translateX(0)}50%{transform:translateX(8px)}}@keyframes job-float{0%,100%{transform:translateX(0)}50%{transform:translateX(-8px)}}@keyframes keyword-match{0%,25%{transform:translateX(0);opacity:.45}60%,100%{transform:translateX(28px);opacity:1}}@keyframes engine-pulse{0%{transform:scale(.75);opacity:.8}100%{transform:scale(1.45);opacity:0}}@keyframes result-in{0%,20%{opacity:0;transform:translate(-50%,8px)}40%,85%{opacity:1;transform:translate(-50%,0)}100%{opacity:0;transform:translate(-50%,-5px)}}
 @media(prefers-reduced-motion:reduce){.match-source,.match-source i,.engine-pulse,.match-result{animation:none}}
+
+.home-nav{animation:home-fade-down .7s ease both}
+.home-hero-copy{animation:home-reveal-left .85s .1s cubic-bezier(.22,1,.36,1) both}
+.home-hero-visual{animation:home-reveal-right .9s .2s cubic-bezier(.22,1,.36,1) both}
+.score-preview{animation:score-card-float 6s ease-in-out 1s infinite}
+.floating-note--top{animation:note-float-top 4.5s ease-in-out 1.2s infinite}
+.floating-note--bottom{animation:note-float-bottom 5s ease-in-out 1.5s infinite}
+.home-trusted{animation:home-fade-up .8s .35s ease both}
+.home-trusted strong{display:inline-block;animation:trusted-rise .7s ease both}
+.home-trusted strong:nth-child(1){animation-delay:.45s}.home-trusted strong:nth-child(2){animation-delay:.55s}.home-trusted strong:nth-child(3){animation-delay:.65s}.home-trusted strong:nth-child(4){animation-delay:.75s}.home-trusted strong:nth-child(5){animation-delay:.85s}
+.home-section-heading{animation:home-fade-up .8s ease both}
+.home-step{animation:step-reveal .7s ease both}
+.home-step:nth-child(1){animation-delay:.15s}.home-step:nth-child(2){animation-delay:.3s}.home-step:nth-child(3){animation-delay:.45s}
+.home-step:hover{transform:translateY(-6px);border-color:#0a8a80;box-shadow:0 12px 25px #173f4a12}
+.home-step{transition:transform .3s ease,box-shadow .3s ease,border-color .3s ease}
+@keyframes home-fade-down{from{opacity:0;transform:translateY(-16px)}to{opacity:1;transform:translateY(0)}}
+@keyframes home-fade-up{from{opacity:0;transform:translateY(24px)}to{opacity:1;transform:translateY(0)}}
+@keyframes home-reveal-left{from{opacity:0;transform:translateX(-35px)}to{opacity:1;transform:translateX(0)}}
+@keyframes home-reveal-right{from{opacity:0;transform:translateX(35px) scale(.97)}to{opacity:1;transform:translateX(0) scale(1)}}
+@keyframes trusted-rise{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+@keyframes step-reveal{from{opacity:0;transform:translateY(18px)}to{opacity:1;transform:translateY(0)}}
+@keyframes score-card-float{0%,100%{transform:rotate(3deg) translateY(0)}50%{transform:rotate(3deg) translateY(-9px)}}
+@keyframes note-float-top{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+@keyframes note-float-bottom{0%,100%{transform:translateY(0)}50%{transform:translateY(7px)}}
+.home-scroll-reveal{opacity:0;transform:translateY(30px);animation:none;transition:opacity .8s ease,transform .8s cubic-bezier(.22,1,.36,1)}
+.home-scroll-reveal .home-section-heading,.home-scroll-reveal .home-step,.home-scroll-reveal.home-trusted strong{animation:none;opacity:1;transform:none}
+.home-scroll-reveal.is-visible{opacity:1;transform:translateY(0)}
+.home-scroll-reveal.is-visible .home-section-heading{animation:home-fade-up .7s ease both}
+.home-scroll-reveal.is-visible .home-step{animation:step-reveal .7s ease both}
+.home-scroll-reveal.is-visible .home-step:nth-child(1){animation-delay:.1s}
+.home-scroll-reveal.is-visible .home-step:nth-child(2){animation-delay:.25s}
+.home-scroll-reveal.is-visible .home-step:nth-child(3){animation-delay:.4s}
+.home-trusted div{animation:trusted-breathe 5s ease-in-out infinite}
+.home-trusted strong{animation:trusted-float 4s ease-in-out infinite}
+.home-trusted strong:nth-child(2){animation-delay:-.8s}.home-trusted strong:nth-child(3){animation-delay:-1.6s}.home-trusted strong:nth-child(4){animation-delay:-2.4s}.home-trusted strong:nth-child(5){animation-delay:-3.2s}
+.home-section-heading h2 em,.home-hero h1 em,.feature-copy h2 em,.home-cta h2 em{display:inline-block;animation:heading-breathe 4s ease-in-out infinite}
+.home-kicker{animation:kicker-pulse 3.5s ease-in-out infinite}
+.home-step>span{display:inline-block;animation:number-pulse 3s ease-in-out infinite}
+.home-step:nth-child(2)>span{animation-delay:-1s}.home-step:nth-child(3)>span{animation-delay:-2s}
+@keyframes trusted-breathe{0%,100%{opacity:.82}50%{opacity:1}}
+@keyframes trusted-float{0%,100%{transform:translateY(0)}50%{transform:translateY(-3px)}}
+@keyframes heading-breathe{0%,100%{transform:translateY(0);text-shadow:0 0 0 transparent}50%{transform:translateY(-3px);text-shadow:0 5px 18px #0a887e1c}}
+@keyframes kicker-pulse{0%,100%{opacity:.82}50%{opacity:1}}
+@keyframes number-pulse{0%,100%{transform:scale(1);opacity:.8}50%{transform:scale(1.08);opacity:1}}
+@media(prefers-reduced-motion:reduce){.home-nav,.home-hero-copy,.home-hero-visual,.score-preview,.floating-note--top,.floating-note--bottom,.home-trusted,.home-trusted strong,.home-section-heading,.home-step{animation:none}.home-step{transition:none}.home-step:hover{transform:none}}
+@media(prefers-reduced-motion:reduce){.home-scroll-reveal{opacity:1;transform:none;transition:none}}
+@media(prefers-reduced-motion:reduce){.home-trusted div,.home-trusted strong,.home-section-heading h2 em,.home-hero h1 em,.feature-copy h2 em,.home-cta h2 em,.home-kicker,.home-step>span{animation:none}}
