@@ -4,9 +4,18 @@ import './Login.css'
 
 type Props = { onSignIn: () => void }
 
+function getAuthErrorMessage(authError: unknown) {
+  const message = authError instanceof Error ? authError.message : ''
+  if (message.toLowerCase().includes('rate limit')) {
+    return 'Too many authentication emails were requested recently. Please wait a few minutes before trying again. You can still sign in with your password once the limit clears.'
+  }
+  return message || 'Unable to complete authentication.'
+}
+
 function Login({ onSignIn }: Props) {
-  const [email, setEmail] = useState('')
+  const [email, setEmail] = useState(() => localStorage.getItem('matchscore-remembered-email') || '')
   const [password, setPassword] = useState('')
+  const [rememberEmail, setRememberEmail] = useState(() => Boolean(localStorage.getItem('matchscore-remembered-email')))
   const [verificationCode, setVerificationCode] = useState('')
   const [isCreatingAccount, setIsCreatingAccount] = useState(false)
   const [isVerifying, setIsVerifying] = useState(false)
@@ -53,9 +62,14 @@ function Login({ onSignIn }: Props) {
         password,
       })
       if (signInError) throw signInError
+      if (rememberEmail) {
+        localStorage.setItem('matchscore-remembered-email', email.trim().toLowerCase())
+      } else {
+        localStorage.removeItem('matchscore-remembered-email')
+      }
       onSignIn()
     } catch (authError) {
-      setError(authError instanceof Error ? authError.message : 'Unable to complete authentication.')
+      setError(getAuthErrorMessage(authError))
     } finally {
       setIsSubmitting(false)
     }
@@ -99,7 +113,7 @@ function Login({ onSignIn }: Props) {
           <h1>Build. Score. Improve.</h1>
           <p>Optimize your resume for applicant tracking systems using advanced similarity matching algorithms and tailored AI feedback.</p>
         </div>
-        <footer className="login-story-footer"><span>© 2026 MatchScore Inc.</span><span>Version 2.4 (Cosine V2)</span></footer>
+        <footer className="login-story-footer"><span>© 2026 MatchScore</span><span>Resume matching platform</span></footer>
       </section>
       <section className="login-form-side">
         <form className="login-form" onSubmit={handleSubmit}>
@@ -109,21 +123,25 @@ function Login({ onSignIn }: Props) {
           </div>
           {!isVerifying && <label className="login-field">
             <span>Email Address</span>
-            <span className="login-input-wrap"><span aria-hidden="true">✉</span><input autoComplete="email" type="email" value={email} onChange={(event) => setEmail(event.target.value)} required /></span>
+            <span className="login-input-wrap"><span aria-hidden="true">✉</span><input autoComplete="email" type="email" value={email} onChange={(event) => { setEmail(event.target.value); setError('') }} required /></span>
           </label>}
           {!isVerifying && <label className="login-field">
             <span className="password-label">Password {!isCreatingAccount && <button className="text-link" type="button" onClick={handlePasswordReset}>Forgot?</button>}</span>
             <span className="login-input-wrap">
               <span aria-hidden="true">♙</span>
-              <input autoComplete={isCreatingAccount ? 'new-password' : 'current-password'} type={showPassword ? 'text' : 'password'} value={password} onChange={(event) => setPassword(event.target.value)} minLength={6} required />
+              <input autoComplete={isCreatingAccount ? 'new-password' : 'current-password'} type={showPassword ? 'text' : 'password'} value={password} onChange={(event) => { setPassword(event.target.value); setError('') }} minLength={6} required />
               <button className="password-toggle" type="button" onClick={() => setShowPassword((current) => !current)} aria-label={showPassword ? 'Hide password' : 'Show password'} aria-pressed={showPassword}>
                 {showPassword ? 'Hide' : 'Show'}
               </button>
             </span>
           </label>}
+          {!isVerifying && !isCreatingAccount && <label className="login-remember">
+            <input type="checkbox" checked={rememberEmail} onChange={(event) => setRememberEmail(event.target.checked)} />
+            <span>Remember my email</span>
+          </label>}
           {isVerifying && <label className="login-field">
             <span>Verification Code</span>
-            <span className="login-input-wrap"><span aria-hidden="true">#</span><input inputMode="numeric" autoComplete="one-time-code" value={verificationCode} onChange={(event) => setVerificationCode(event.target.value)} required /></span>
+            <span className="login-input-wrap"><span aria-hidden="true">#</span><input inputMode="numeric" autoComplete="one-time-code" value={verificationCode} onChange={(event) => { setVerificationCode(event.target.value); setError('') }} required /></span>
           </label>}
           {message && <p className="login-message" role="status">{message}</p>}
           {error && <p className="login-error" role="alert">{error}</p>}

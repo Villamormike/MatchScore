@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import type { User } from '@supabase/supabase-js'
 import './App.css'
 import { supabase } from './supabaseClient'
@@ -23,10 +23,58 @@ const navigation: { label: string; screen: ScreenKey }[] = [
   { label: 'Feedback', screen: 'recommendations' },
 ]
 
-function AppHeader({ screen, user, onNavigate, onSignOut }: { screen: ScreenKey; user: User; onNavigate: (screen: ScreenKey) => void; onSignOut: () => void }) {
+type AppNotification = {
+  id: string
+  message: string
+  actionLabel: string
+  action: () => void
+}
+
+function AppHeader({
+  screen,
+  user,
+  documents,
+  onNavigate,
+  onSelectDocument,
+  onSignOut,
+  darkMode,
+  onToggleDarkMode,
+  notifications,
+  onClearNotifications,
+}: {
+  screen: ScreenKey
+  user: User
+  documents: SavedDocument[]
+  onNavigate: (screen: ScreenKey) => void
+  onSelectDocument: (document: SavedDocument) => void
+  onSignOut: () => void
+  darkMode: boolean
+  onToggleDarkMode: () => void
+  notifications: AppNotification[]
+  onClearNotifications: () => void
+}) {
   const activeNav = screen === 'resumeEditor' ? 'templates' : screen === 'matchResults' ? 'jobMatches' : screen === 'scoreHistory' ? 'dashboard' : screen
   const email = user.email || 'Account'
-  const initials = email.slice(0, 2).toUpperCase()
+  const nickname = email.split('@')[0] || 'Account'
+  const initials = nickname.slice(0, 2).toUpperCase()
+  const [query, setQuery] = useState('')
+  const [profileOpen, setProfileOpen] = useState(false)
+  const [notificationsOpen, setNotificationsOpen] = useState(false)
+  const profileRef = useRef<HTMLDivElement>(null)
+
+  const matchingDocuments = query.trim()
+    ? documents.filter((document) => `${document.name} ${document.filename}`.toLowerCase().includes(query.trim().toLowerCase())).slice(0, 5)
+    : []
+
+  useEffect(() => {
+    const closeMenus = (event: MouseEvent) => {
+      if (profileRef.current && !profileRef.current.contains(event.target as Node)) {
+        setProfileOpen(false)
+      }
+    }
+    document.addEventListener('mousedown', closeMenus)
+    return () => document.removeEventListener('mousedown', closeMenus)
+  }, [])
 
   return (
     <header className="app-header">
@@ -47,18 +95,95 @@ function AppHeader({ screen, user, onNavigate, onSignOut }: { screen: ScreenKey;
         ))}
       </nav>
       <div className="header-tools">
-        <label className="header-search">
+        <div className="header-search-wrap">
+          <label className="header-search">
           <span aria-hidden="true">⌕</span>
-          <input aria-label="Search documents" placeholder="Search documents..." />
-        </label>
-        <button className="icon-button notification-button" type="button" aria-label="Notifications">
+          <input
+            aria-label="Search documents"
+            placeholder="Search documents..."
+            value={query}
+            onChange={(event) => setQuery(event.target.value)}
+          />
+          </label>
+          {query.trim() && (
+            <div className="search-results" role="listbox" aria-label="Matching documents">
+              {matchingDocuments.length ? matchingDocuments.map((document) => (
+                <button
+                  type="button"
+                  key={document.id}
+                  onClick={() => {
+                    onSelectDocument(document)
+                    setQuery('')
+                  }}
+                >
+                  <strong>{document.name}</strong>
+                  <small>{document.word_count} words</small>
+                </button>
+              )) : <p>No matching documents</p>}
+            </div>
+          )}
+        </div>
+        <div className="notification-wrap">
+          <button
+            className="icon-button notification-button"
+            type="button"
+            aria-label="Notifications"
+            aria-expanded={notificationsOpen}
+            onClick={() => {
+              setNotificationsOpen((open) => !open)
+              setProfileOpen(false)
+            }}
+          >
           <span aria-hidden="true">♧</span>
-          <i />
-        </button>
-        <button className="profile-button" type="button" onClick={onSignOut} aria-label={`Sign out ${email}`}>
-          <span className="avatar">{initials}</span>
-          <span className="profile-name">{email}</span>
-        </button>
+          {notifications.length > 0 && <i />}
+          </button>
+          {notificationsOpen && (
+            <div className="notification-popover">
+              {notifications.length === 0 ? <p>No new notifications</p> : (
+                <>
+                  <div className="notification-popover-header">
+                    <strong>Notifications</strong>
+                    <button type="button" onClick={onClearNotifications}>Clear all</button>
+                  </div>
+                  {notifications.map((notification) => (
+                    <div className="notification-item" key={notification.id}>
+                      <span>{notification.message}</span>
+                      <button type="button" onClick={notification.action}>{notification.actionLabel}</button>
+                    </div>
+                  ))}
+                </>
+              )}
+            </div>
+          )}
+        </div>
+        <div className="profile-menu-wrap" ref={profileRef}>
+          <button
+            className="profile-button"
+            type="button"
+            onClick={() => {
+              setProfileOpen((open) => !open)
+              setNotificationsOpen(false)
+            }}
+            aria-label={`Open account menu for ${nickname}`}
+            aria-expanded={profileOpen}
+          >
+            <span className="avatar">{initials}</span>
+            <span className="profile-name">{nickname}</span>
+            <span className="profile-chevron" aria-hidden="true">⌄</span>
+          </button>
+          {profileOpen && (
+            <div className="profile-menu">
+              <p className="profile-email">{email}</p>
+              <button type="button" onClick={() => onSignOut()}>Switch account</button>
+              <label className="dark-mode-toggle">
+                <span>Dark mode</span>
+                <input type="checkbox" checked={darkMode} onChange={onToggleDarkMode} />
+                <span className="toggle-track" aria-hidden="true"><span /></span>
+              </label>
+              <button className="logout-button" type="button" onClick={onSignOut}>Log out</button>
+            </div>
+          )}
+        </div>
       </div>
     </header>
   )
@@ -74,6 +199,8 @@ function App() {
   const [activeDocument, setActiveDocument] = useState<SavedDocument | null>(null)
   const [generatedDocument, setGeneratedDocument] = useState<UploadedDocument | null>(null)
   const [accountError, setAccountError] = useState('')
+  const [darkMode, setDarkMode] = useState(() => localStorage.getItem('matchscore-dark-mode') === 'true')
+  const [notifications, setNotifications] = useState<AppNotification[]>([])
 
   useEffect(() => {
     supabase.auth.getSession().then(({ data }) => {
@@ -93,12 +220,22 @@ function App() {
     if (!user) {
       setDocuments([])
       setScoreHistory([])
+      setActiveScoreResult(null)
+      setActiveDocument(null)
+      setUploadedDocument(null)
       return
     }
     loadAccountData()
       .then(({ documents: loadedDocuments, scores }) => {
         setDocuments(loadedDocuments)
         setScoreHistory(scores)
+        const latestScore = scores[0]
+        const linkedDocument = latestScore?.document_id
+          ? loadedDocuments.find((document) => document.id === latestScore.document_id) || null
+          : null
+        setActiveScoreResult(latestScore || null)
+        setActiveDocument(linkedDocument)
+        setUploadedDocument(linkedDocument)
       })
       .catch((error) => {
         console.error('Unable to load account data', error)
@@ -118,12 +255,38 @@ function App() {
   }
 
   const handleScored = (result: ScoreResult) => {
-    const scoredDocumentId = uploadedDocument?.id
+    const scoredDocumentId = result.document_id || uploadedDocument?.id
     const scoredResult = scoredDocumentId ? { ...result, document_id: scoredDocumentId } : result
     setActiveScoreResult(scoredResult)
+    const matchingSavedDocument = scoredDocumentId
+      ? documents.find((document) => document.id === scoredDocumentId)
+      : undefined
+    if (matchingSavedDocument) {
+      setActiveDocument(matchingSavedDocument)
+      setUploadedDocument(matchingSavedDocument)
+    }
     setScoreHistory((prev) => [scoredResult, ...prev.filter((item) => item.id !== result.id)])
-    const matchingDocument = uploadedDocument
-    saveAccountScore(result, matchingDocument?.id)
+    setNotifications((current) => [{
+      id: `score-${result.id}`,
+      message: `Scoring finished for ${result.job_title} at ${result.company}.`,
+      actionLabel: 'View score',
+      action: () => {
+        setScreen('matchResults')
+        setNotifications((items) => items.filter((item) => item.id !== `score-${result.id}`))
+      },
+    }, ...current.filter((item) => item.id !== `score-${result.id}`)])
+    if (result.ai_guidance_used === false) {
+      setNotifications((current) => [{
+        id: `ai-score-unavailable-${result.id}`,
+        message: 'AI scoring was unavailable, so a local score was used instead.',
+        actionLabel: 'View score',
+        action: () => {
+          setScreen('matchResults')
+          setNotifications((items) => items.filter((item) => item.id !== `ai-score-unavailable-${result.id}`))
+        },
+      }, ...current.filter((item) => item.id !== `ai-score-unavailable-${result.id}`)])
+    }
+    saveAccountScore(scoredResult, matchingSavedDocument?.id || uploadedDocument?.id)
       .then((savedResult) => setScoreHistory((prev) => [savedResult, ...prev.filter((item) => item.id !== result.id && item.id !== savedResult.id)]))
       .catch((error) => {
         console.error('Unable to save score result', error)
@@ -156,7 +319,14 @@ function App() {
     })
     const result = await response.json()
     if (!response.ok || !result.success || !result.data?.text || !result.data?.html) {
-      throw new Error(result.error || 'AI recommendation application failed.')
+      const errorMessage = result.error || 'AI recommendation application failed.'
+      setNotifications((current) => [{
+        id: `ai-recommendation-failed-${Date.now()}`,
+        message: `AI recommendation could not be applied: ${errorMessage}`,
+        actionLabel: 'View feedback',
+        action: () => setScreen('recommendations'),
+      }, ...current])
+      throw new Error(errorMessage)
     }
 
     const updatedDocument: UploadedDocument = {
@@ -177,6 +347,15 @@ function App() {
     setActiveDocument(savedDocument)
     setGeneratedDocument(null)
     setDocuments((prev) => [savedDocument, ...prev.filter((item) => item.id !== savedDocument.id)])
+    setNotifications((current) => [{
+      id: `improved-${savedDocument.id}`,
+      message: `${savedDocument.name} was improved with AI.`,
+      actionLabel: 'Open editor',
+      action: () => {
+        setScreen('resumeEditor')
+        setNotifications((items) => items.filter((item) => item.id !== `improved-${savedDocument.id}`))
+      },
+    }, ...current.filter((item) => item.id !== `improved-${savedDocument.id}`)])
     setScreen('resumeEditor')
   }
 
@@ -200,7 +379,14 @@ function App() {
     })
     const result = await response.json()
     if (!response.ok || !result.success || !result.data?.text || !result.data?.html) {
-      throw new Error(result.error || 'AI resume improvement failed.')
+      const errorMessage = result.error || 'AI resume improvement failed.'
+      setNotifications((current) => [{
+        id: `ai-improvement-failed-${Date.now()}`,
+        message: `AI resume improvement failed: ${errorMessage}`,
+        actionLabel: 'View score',
+        action: () => setScreen('matchResults'),
+      }, ...current])
+      throw new Error(errorMessage)
     }
 
     const editedDocument: UploadedDocument = {
@@ -214,7 +400,14 @@ function App() {
     }
     const normalizeResumeText = (text: string) => text.replace(/\s+/g, ' ').trim()
     if (normalizeResumeText(editedDocument.text) === normalizeResumeText(document.text)) {
-      throw new Error('I can no longer improve this resume from the current information. Add more experience, projects, skills, or measurable results, then try again.')
+      const errorMessage = 'I can no longer improve this resume from the current information. Add more experience, projects, skills, or measurable results, then try again.'
+      setNotifications((current) => [{
+        id: `ai-improvement-unchanged-${Date.now()}`,
+        message: 'AI can no longer improve this resume. Please add more experience, skills, projects, or measurable results, then try again.',
+        actionLabel: 'View score',
+        action: () => setScreen('matchResults'),
+      }, ...current])
+      throw new Error(errorMessage)
     }
     const savedDocument = await saveAccountDocument(
       editedDocument,
@@ -225,6 +418,15 @@ function App() {
     setActiveDocument(savedDocument)
     setGeneratedDocument(null)
     setDocuments((prev) => [savedDocument, ...prev.filter((item) => item.id !== savedDocument.id)])
+    setNotifications((current) => [{
+      id: `ai-improved-${savedDocument.id}`,
+      message: `${savedDocument.name} was improved with AI.`,
+      actionLabel: 'Open editor',
+      action: () => {
+        setScreen('resumeEditor')
+        setNotifications((items) => items.filter((item) => item.id !== `ai-improved-${savedDocument.id}`))
+      },
+    }, ...current.filter((item) => item.id !== `ai-improved-${savedDocument.id}`)])
 
     if (activeScoreResult.job_description?.trim()) {
       const scoreResponse = await fetch(apiUrl('/api/score'), {
@@ -240,7 +442,14 @@ function App() {
       })
       const scorePayload = await scoreResponse.json()
       if (!scoreResponse.ok || !scorePayload.success || !scorePayload.data) {
-        throw new Error(scorePayload.error || 'The improved resume could not be re-scored.')
+        const errorMessage = scorePayload.error || 'The improved resume could not be re-scored.'
+        setNotifications((current) => [{
+          id: `ai-rescore-failed-${Date.now()}`,
+          message: `The improved resume could not be re-scored: ${errorMessage}`,
+          actionLabel: 'View editor',
+          action: () => setScreen('resumeEditor'),
+        }, ...current])
+        throw new Error(errorMessage)
       }
       const rescoredResult: ScoreResult = {
         ...scorePayload.data,
@@ -325,6 +534,7 @@ function App() {
           <JobMatches
             onScore={handleScored}
             uploadedDocument={uploadedDocument}
+            savedDocuments={documents}
             previousScore={activeScoreResult}
             onDocumentSaved={handleDocumentSaved}
           />
@@ -342,6 +552,9 @@ function App() {
         return (
           <AIRecommendations
             recommendations={activeScoreResult?.recommendations}
+            targetRole={activeScoreResult?.job_title}
+            targetCompany={activeScoreResult?.company}
+            documentName={activeScoreResult?.version}
             onApplyRecommendation={handleApplyRecommendation}
             onBackToEditor={() => setScreen('resumeEditor')}
           />
@@ -381,8 +594,27 @@ function App() {
   }
 
   return (
-    <div className="app-shell">
-      <AppHeader screen={screen} user={user} onNavigate={setScreen} onSignOut={() => supabase.auth.signOut()} />
+    <div className={`app-shell${darkMode ? ' dark-mode' : ''}`}>
+      <AppHeader
+        screen={screen}
+        user={user}
+        documents={documents}
+        onNavigate={setScreen}
+        onSelectDocument={(document) => {
+          setActiveDocument(document)
+          setUploadedDocument(document)
+          setScreen('resumeEditor')
+        }}
+        onSignOut={() => supabase.auth.signOut()}
+        darkMode={darkMode}
+        onToggleDarkMode={() => setDarkMode((enabled) => {
+          const nextValue = !enabled
+          localStorage.setItem('matchscore-dark-mode', String(nextValue))
+          return nextValue
+        })}
+        notifications={notifications}
+        onClearNotifications={() => setNotifications([])}
+      />
       <main className="page-content" key={screen}>{renderScreen()}</main>
       {accountError && <p role="alert" className="account-error">{accountError}</p>}
     </div>

@@ -247,7 +247,7 @@ export async function saveAccountDocument(
     ...(id ? { id } : {}),
     kind: 'RESUME',
     user_id: userData.user.id,
-    name: name.trim() || document.filename || 'Untitled document',
+    name: name.trim() || 'Untitled document',
     file_name: document.filename || null,
     file_format: document.format || null,
     raw_text: document.text,

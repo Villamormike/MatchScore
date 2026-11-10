@@ -168,6 +168,30 @@
   padding: 17px;
 }
 
+.empty-preset-card {
+  min-height: 260px;
+  padding: 28px 22px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  text-align: center;
+}
+
+.empty-preset-card h3 {
+  margin: 4px 0 7px;
+  color: #202c41;
+  font-size: 13px;
+}
+
+.empty-preset-card p {
+  max-width: 260px;
+  margin: 0 0 16px;
+  color: #64748b;
+  font-size: 10px;
+  line-height: 1.5;
+}
+
 .resume-card-top {
   display: flex;
   align-items: center;
@@ -210,29 +234,34 @@
   line-height: 1.5;
 }
 
-.preset-selector-row {
+.preset-selector {
   display: flex;
-  gap: 6px;
+  flex-direction: column;
+  gap: 5px;
   margin-top: 10px;
 }
 
-.preset-btn {
-  flex: 1;
-  padding: 6px;
-  border: 1px solid #e2e8f0;
+.preset-selector label {
+  color: #64748b;
+  font-size: 9px;
+  font-weight: 700;
+}
+
+.preset-selector select {
+  width: 100%;
+  min-height: 34px;
+  padding: 0 9px;
+  border: 1px solid #dbe4ed;
   border-radius: 6px;
   background: #f8fafc;
   color: #475569;
-  font-size: 9px;
+  font-size: 10px;
   cursor: pointer;
-  transition: all 0.15s ease;
 }
 
-.preset-btn.is-active {
+.preset-selector select:focus {
   border-color: #0e9c8e;
-  background: #ecfdfa;
-  color: #0e9c8e;
-  font-weight: 700;
+  outline: 2px solid rgba(14, 156, 142, .14);
 }
 
 .job-meta-row {
@@ -388,4 +417,86 @@
   .score-button-row .action-button {
     width: 100%;
   }
+}
+
+.dark-mode .selected-document-column h2,
+.dark-mode .job-description-heading h2 {
+  color: #e8eef5;
+}
+
+.dark-mode .source-tabs {
+  background: #2a323c;
+}
+
+.dark-mode .source-tab {
+  color: #aab8c7;
+}
+
+.dark-mode .source-tab.is-active {
+  background: #34404c;
+  color: #8de2d8;
+  box-shadow: none;
+}
+
+.dark-mode .upload-dropzone {
+  border-color: #506070;
+  background: #252e38;
+}
+
+.dark-mode .upload-dropzone:hover {
+  background: #293d3b;
+}
+
+.dark-mode .upload-dropzone strong,
+.dark-mode .selected-resume-card h3 {
+  color: #eef3f8;
+}
+
+.dark-mode .upload-dropzone p,
+.dark-mode .resume-summary,
+.dark-mode .resume-skills,
+.dark-mode .empty-preset-card p {
+  color: #b6c2cf;
+}
+
+.dark-mode .format-preserved-pill,
+.dark-mode .algorithm-label {
+  color: #9ce4da;
+  background: #214b47;
+}
+
+.dark-mode .upload-card-actions,
+.dark-mode .score-button-row {
+  border-color: #3b4652;
+}
+
+.dark-mode .document-raw-preview {
+  border-color: #465362;
+  background: #252e38;
+}
+
+.dark-mode .preview-header small,
+.dark-mode .resume-card-top small,
+.dark-mode .preset-selector label,
+.dark-mode .meta-field span,
+.dark-mode .description-bottom {
+  color: #aab8c7;
+}
+
+.dark-mode .document-raw-preview textarea,
+.dark-mode .meta-field input,
+.dark-mode .job-description-card textarea,
+.dark-mode .preset-selector select {
+  border-color: #4a5867;
+  color: #e8eef5;
+  background: #1d242c;
+}
+
+.dark-mode .document-raw-preview textarea::placeholder,
+.dark-mode .job-description-card textarea::placeholder {
+  color: #8998a9;
+}
+
+.dark-mode .resume-card-rule {
+  background: #3b4652;
 }

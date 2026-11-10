@@ -72,55 +72,22 @@ Degree · University Name`,
   },
 }
 
-const defaultTemplate: UploadedDocument = {
-  filename: 'MatchScore_Default_Resume.html',
+const blankTemplate: UploadedDocument = {
+  filename: 'Untitled document',
   format: 'HTML',
-  text: `YOUR NAME
-Professional title | email@example.com | phone | LinkedIn | Location
-
-PROFESSIONAL SUMMARY
-Write a concise summary that connects your strongest experience to the target role.
-
-SKILLS
-Add relevant technical skills, tools, certifications, and domain expertise.
-
-WORK EXPERIENCE
-Job Title — Company Name | Date – Present
-• Describe an achievement, the action you took, and the measurable result.
-• Highlight tools and responsibilities that match the target role.
-
-PROJECTS
-Project Name | Technologies
-• Explain the problem, your contribution, and the outcome.
-
-EDUCATION
-Degree — School Name | Graduation Year`,
-  html: `<h1>YOUR NAME</h1>
-<p><strong>Professional title</strong> | email@example.com | phone | LinkedIn | Location</p>
-<hr>
-<h2>PROFESSIONAL SUMMARY</h2>
-<p>Write a concise summary that connects your strongest experience to the target role.</p>
-<h2>SKILLS</h2>
-<p>Add relevant technical skills, tools, certifications, and domain expertise.</p>
-<h2>WORK EXPERIENCE</h2>
-<h3>Job Title — Company Name <span>| Date – Present</span></h3>
-<ul><li>Describe an achievement, the action you took, and the measurable result.</li><li>Highlight tools and responsibilities that match the target role.</li></ul>
-<h2>PROJECTS</h2>
-<h3>Project Name <span>| Technologies</span></h3>
-<ul><li>Explain the problem, your contribution, and the outcome.</li></ul>
-<h2>EDUCATION</h2>
-<p>Degree — School Name | Graduation Year</p>`,
+  text: '',
+  html: '',
   sections: {},
-  word_count: 75,
-  char_count: 600,
-  summary_preview: 'Default MatchScore resume template.',
-  skills_preview: 'Add relevant technical skills and tools.',
+  word_count: 0,
+  char_count: 0,
+  summary_preview: '',
+  skills_preview: '',
 }
 
 function createTemplateDocument(template: Template): UploadedDocument {
   const content = templateContent[template.name]
   return {
-    filename: `MatchScore_${template.name}_Resume.html`,
+    filename: 'Untitled document',
     format: 'HTML',
     text: content.text,
     html: content.html,
@@ -157,9 +124,9 @@ function Templates({ onGenerateLayout }: Props) {
       if (!response.ok || !result.success || !result.data?.html || !result.data?.text) {
         throw new Error(result.error || 'The AI layout could not be generated.')
       }
-      const { title, text, html } = result.data
+      const { text, html } = result.data
       onGenerateLayout({
-        filename: `${title || 'AI_Generated_Resume'}.html`,
+        filename: 'Untitled document',
         format: 'HTML',
         text,
         html,
@@ -186,7 +153,7 @@ function Templates({ onGenerateLayout }: Props) {
         </div>
       </section>
       <section className="template-grid">
-        <button className="surface create-template-card" type="button" onClick={() => onGenerateLayout(defaultTemplate)}>
+        <button className="surface create-template-card" type="button" onClick={() => onGenerateLayout(blankTemplate)}>
           <span className="create-template-icon">＋</span><strong>Create Custom Template</strong><small>Build your own structure from scratch</small>
         </button>
         <article className="ai-template-card">

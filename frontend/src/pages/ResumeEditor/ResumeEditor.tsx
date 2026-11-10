@@ -27,7 +27,7 @@ function ResumeEditor({ initialDocument, initialContent, onNavigate, onDocumentU
   const imageInputRef = useRef<HTMLInputElement>(null)
   const documentInputRef = useRef<HTMLInputElement>(null)
   const selectedImageRef = useRef<HTMLImageElement | null>(null)
-  const [documentName, setDocumentName] = useState(initialDocument?.name || (initialContent ? 'AI Generated Resume' : 'Untitled document'))
+  const [documentName, setDocumentName] = useState(initialDocument?.name || 'Untitled document')
   const [saved, setSaved] = useState(true)
   const [uploadError, setUploadError] = useState('')
   const [hasSelectedImage, setHasSelectedImage] = useState(false)

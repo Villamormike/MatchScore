@@ -41,11 +41,14 @@ const fallbackRecommendations: Recommendation[] = [
 
 type Props = {
   recommendations?: Recommendation[]
+  targetRole?: string
+  targetCompany?: string
+  documentName?: string
   onApplyRecommendation?: (recommendation: Recommendation) => Promise<void>
   onBackToEditor?: () => void
 }
 
-function AIRecommendations({ recommendations, onApplyRecommendation, onBackToEditor }: Props) {
+function AIRecommendations({ recommendations, targetRole, targetCompany, documentName, onApplyRecommendation, onBackToEditor }: Props) {
   const activeRecs = (recommendations && recommendations.length > 0)
     ? recommendations
     : fallbackRecommendations
@@ -88,6 +91,11 @@ function AIRecommendations({ recommendations, onApplyRecommendation, onBackToEdi
       <section className="page-heading recommendations-heading">
         <div>
           <h1>Improvement Recommendations & Feedback</h1>
+          <div className="recommendation-context" aria-label="Recommendation context">
+            <span><small>TARGET ROLE</small><strong>{targetRole || 'Target role'}</strong></span>
+            <span><small>COMPANY</small><strong>{targetCompany || 'Target company'}</strong></span>
+            <span><small>RESUME FILE</small><strong>{documentName || 'Selected resume'}</strong></span>
+          </div>
         </div>
         <div className="recommendations-heading-actions">
           <span className="ai-note">✧ AI recommendations tailored directly to your target job</span>

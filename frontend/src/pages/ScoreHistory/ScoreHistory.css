@@ -198,3 +198,43 @@
     height: 160px;
   }
 }
+
+.dark-mode .history-ranges {
+  border-color: #465362;
+  background: #252e38;
+}
+
+.dark-mode .history-ranges button {
+  color: #aab8c7;
+}
+
+.dark-mode .trend-card-heading h2,
+.dark-mode .scoring-log-section h2,
+.dark-mode .scoring-table td strong {
+  color: #eef3f8;
+}
+
+.dark-mode .trend-card-heading p,
+.dark-mode .trend-card-heading > span,
+.dark-mode .chart-axis-labels,
+.dark-mode .scoring-table th,
+.dark-mode .scoring-table td {
+  color: #aab8c7;
+}
+
+.dark-mode .chart-grid-line {
+  stroke: #3b4652;
+}
+
+.dark-mode .chart-dot {
+  fill: #252e38;
+}
+
+.dark-mode .scoring-table th {
+  background: #252e38;
+  border-color: #3b4652;
+}
+
+.dark-mode .scoring-table td {
+  border-color: #303943;
+}

@@ -51,7 +51,7 @@ function MatchResults({ result, onNavigate, onImproveResume, onEditManually }: P
       console.error('Unable to improve resume with AI', error)
       setImproveError(error instanceof Error
         ? error.message
-        : 'The AI could not improve this resume. You can edit it manually or try again.')
+        : 'The AI could not improve this resume. Please add more experience, skills, projects, or measurable results, then try again.')
     } finally {
       setIsImproving(false)
     }

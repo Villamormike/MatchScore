@@ -389,3 +389,71 @@
   gap: 10px;
   margin-top: 16px;
 }
+
+.dark-mode .template-filters {
+  border-color: #465362;
+  background: #252e38;
+}
+
+.dark-mode .template-filters button {
+  color: #aab8c7;
+}
+
+.dark-mode .create-template-card {
+  background: #222a33;
+}
+
+.dark-mode .create-template-card small,
+.dark-mode .template-card-footer small {
+  color: #aab8c7;
+}
+
+.dark-mode .template-preview {
+  background: #252e38;
+}
+
+.dark-mode .resume-thumb {
+  color: #c3cfdb;
+  background: #303943;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, .35);
+}
+
+.dark-mode .resume-thumb strong,
+.dark-mode .resume-thumb h4 {
+  color: #eef3f8;
+}
+
+.dark-mode .resume-thumb small {
+  color: #aab8c7;
+}
+
+.dark-mode .resume-thumb hr,
+.dark-mode .preview-rule {
+  background: #4a5867;
+  border-color: #4a5867;
+}
+
+.dark-mode .preview-line,
+.dark-mode .preview-columns i {
+  background: #465362;
+}
+
+.dark-mode .template-card-footer strong {
+  color: #eef3f8;
+}
+
+.dark-mode .layout-prompt-dialog {
+  border: 1px solid #465362;
+  background: #252e38;
+  color: #e8eef5;
+}
+
+.dark-mode .layout-prompt-dialog p {
+  color: #aab8c7;
+}
+
+.dark-mode .layout-prompt-dialog textarea {
+  border-color: #4a5867;
+  color: #e8eef5;
+  background: #1d242c;
+}

@@ -177,3 +177,104 @@
 @media (max-width: 620px) { .editor-toolbar { flex-wrap: wrap; }.editor-toolbar-actions { width: 100%; margin-left: 35px; }.document-page { padding: 32px 22px; }.document-format-bar select[aria-label="Font family"] { width: 90px; } }
 @media print { @page { margin: 0; }.app-header, .editor-toolbar, .editor-print-hint, .document-menu-bar, .document-format-bar, .document-ruler { display: none !important; }.document-workspace { padding: 0; background: #fff; }.document-page { width: 100%; min-height: auto; box-shadow: none; } }
 @media print { .document-page .ai-applied-edit { padding: 0; border-left: 0; background: transparent; }.document-page .ai-applied-edit::before { display: none; } }
+
+.dark-mode .resume-editor-page {
+  color: #e8eef5;
+}
+
+.dark-mode .editor-toolbar {
+  border-color: #3b4652;
+}
+
+.dark-mode .editor-back,
+.dark-mode .document-menu-bar button,
+.dark-mode .document-format-bar button,
+.dark-mode .color-control,
+.dark-mode .image-toolbar-label {
+  color: #c3cfdb;
+}
+
+.dark-mode .document-title {
+  color: #eef3f8;
+}
+
+.dark-mode .document-title:hover,
+.dark-mode .document-title:focus {
+  border-color: #4a5867;
+}
+
+.dark-mode .document-menu-bar button:hover,
+.dark-mode .document-format-bar button:hover,
+.dark-mode .color-control:hover {
+  background: #303943;
+}
+
+.dark-mode .document-menu-dropdown {
+  border-color: #4a5867;
+  background: #252e38;
+  box-shadow: 0 8px 20px rgba(0, 0, 0, .35);
+}
+
+.dark-mode .document-menu-dropdown button {
+  color: #d3dce6;
+}
+
+.dark-mode .document-menu-dropdown button:hover {
+  background: #303943;
+}
+
+.dark-mode .document-format-bar {
+  border-color: #4a5867;
+  background: #252e38;
+}
+
+.dark-mode .document-format-bar select {
+  border-color: #4a5867;
+  color: #e8eef5;
+  background: #1d242c;
+}
+
+.dark-mode .toolbar-divider {
+  background: #4a5867;
+}
+
+.dark-mode .document-workspace {
+  background: #1b222a;
+}
+
+.dark-mode .editor-recommendations {
+  border-color: #3b4652;
+  background: #222a33;
+}
+
+.dark-mode .editor-recommendations > p,
+.dark-mode .editor-recommendation p {
+  color: #aab8c7;
+}
+
+.dark-mode .editor-recommendation {
+  border-color: #315a54;
+  background: #203a38;
+}
+
+.dark-mode .editor-recommendation h3 {
+  color: #eef3f8;
+}
+
+.dark-mode .document-ruler {
+  color: #9aaabd;
+}
+
+.dark-mode .document-page {
+  color: #e8eef5;
+  background: #252e38;
+  box-shadow: 0 1px 5px rgba(0, 0, 0, .4);
+}
+
+.dark-mode .document-page:empty::before {
+  color: #9aaabd;
+}
+
+.dark-mode .document-page .ai-applied-edit {
+  background: #214b47;
+}

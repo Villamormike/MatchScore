@@ -128,13 +128,16 @@ Degree — School Name | Graduation Year"""
 
 def _get_gemini_api_keys() -> List[str]:
     """Read ordered provider keys from environment variables or the local key file."""
+    def unique_keys(values: List[str]) -> List[str]:
+        return list(dict.fromkeys(key for key in values if key))
+
     configured_keys = os.getenv("GEMINI_API_KEYS", "").strip()
     if configured_keys:
-        return [
+        return unique_keys([
             key.strip()
             for key in re.split(r"[\r\n,]+", configured_keys)
             if key.strip()
-        ]
+        ])
 
     configured_key = os.getenv("GEMINI_API_KEY", "").strip()
     if configured_key:
@@ -156,9 +159,10 @@ def _get_gemini_api_keys() -> List[str]:
             continue
         if ":" in key_value:
             key_value = key_value.split(":", 1)[1].strip()
-        if key_value:
+        # Ignore account headings and other prose while allowing bare keys.
+        if key_value and " " not in key_value and len(key_value) >= 20:
             keys.append(key_value)
-    return keys
+    return unique_keys(keys)
 
 
 def _parse_json_response(text: str) -> Dict[str, Any]:

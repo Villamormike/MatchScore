@@ -2,6 +2,37 @@
   margin-bottom: 22px;
 }
 
+.recommendation-context {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 18px;
+  margin-top: 13px;
+}
+
+.recommendation-context span {
+  display: flex;
+  align-items: baseline;
+  gap: 6px;
+  color: #53647b;
+  font-size: 10px;
+}
+
+.recommendation-context small {
+  color: #91a0b3;
+  font-size: 8px;
+  font-weight: 800;
+  letter-spacing: .08em;
+}
+
+.recommendation-context strong {
+  max-width: 240px;
+  overflow: hidden;
+  color: #263248;
+  font-size: 10px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .ai-note {
   color: #078f83;
   font-size: 10px;
@@ -92,6 +123,14 @@
 }
 
 @media (max-width: 700px) {
+  .recommendation-context {
+    gap: 9px 14px;
+  }
+
+  .recommendation-context span {
+    width: 100%;
+  }
+
   .recommendations-heading-actions {
     align-items: flex-start;
     flex-direction: column;
@@ -229,4 +268,65 @@
     width: auto;
     padding-inline: 10px;
   }
+}
+
+.dark-mode .resume-sections-card button {
+  color: #b8c5d3;
+}
+
+.dark-mode .resume-sections-card button.is-active,
+.dark-mode .resume-sections-card button:hover {
+  color: #8de2d8;
+  background: #214b47;
+}
+
+.dark-mode .resume-sections-card button small {
+  color: #b8c5d3;
+  background: #303943;
+}
+
+.dark-mode .resume-sections-card button.is-active small {
+  color: #8de2d8;
+  background: #2b625b;
+}
+
+.dark-mode .recommendation-category {
+  color: #9ce4da;
+  background: #214b47;
+}
+
+.dark-mode .recommendation-context span {
+  color: #b8c5d3;
+}
+
+.dark-mode .recommendation-context small {
+  color: #91a2b5;
+}
+
+.dark-mode .recommendation-context strong {
+  color: #eef3f8;
+}
+
+.dark-mode .impact-label,
+.dark-mode .recommendation-reason,
+.dark-mode .empty-recommendations {
+  color: #aab8c7;
+}
+
+.dark-mode .recommendation-card h2,
+.dark-mode .empty-recommendations strong {
+  color: #eef3f8;
+}
+
+.dark-mode .suggested-rephrase {
+  border-color: #465362;
+  background: #2a323c;
+}
+
+.dark-mode .suggested-rephrase span {
+  color: #9aaabd;
+}
+
+.dark-mode .suggested-rephrase p {
+  color: #d3dce6;
 }

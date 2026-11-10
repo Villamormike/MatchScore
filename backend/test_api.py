@@ -65,5 +65,18 @@ JavaScript, React, HTML5, CSS3, Git, SQL
         print("Explanation:", data["explanation"])
         print("Recommendations count:", len(data["recommendations"]))
 
+    def test_scoring_detects_role_and_company_from_job_post(self):
+        res = self.client.post("/api/score", json={
+            "resume_text": "Experienced product designer with Figma, research, and prototyping.",
+            "job_description": "Product Designer\nCompany: Northstar Labs\n\nResponsibilities:\nDesign user experiences with Figma.",
+            "resume_name": "Untitled document",
+            "job_title": "",
+            "company": ""
+        })
+        self.assertEqual(res.status_code, 200)
+        data = res.get_json()["data"]
+        self.assertEqual(data["job_title"], "Product Designer")
+        self.assertEqual(data["company"], "Northstar Labs")
+
 if __name__ == "__main__":
     unittest.main()

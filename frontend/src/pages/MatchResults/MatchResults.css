@@ -196,3 +196,38 @@
     flex: 1 1 40%;
   }
 }
+
+.dark-mode .score-gauge-inner {
+  background: #252e38;
+}
+
+.dark-mode .score-gauge-inner strong,
+.dark-mode .resume-improvement-copy h2 {
+  color: #eef3f8;
+}
+
+.dark-mode .score-gauge-inner span,
+.dark-mode .score-explanation p,
+.dark-mode .inline-recommendation {
+  color: #aab8c7;
+}
+
+.dark-mode .explanation-label {
+  color: #9ce4da;
+  background: #214b47;
+}
+
+.dark-mode .keyword-list--green span {
+  color: #8be5bb;
+  background: #214b3d;
+}
+
+.dark-mode .keyword-list--amber span {
+  color: #f4d276;
+  background: #4a4023;
+}
+
+.dark-mode .keyword-list--teal span {
+  color: #9ce4da;
+  background: #214b47;
+}

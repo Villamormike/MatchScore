@@ -17,91 +17,58 @@ Requirements:
 • Experience with version control (Git) and automated testing (Jest).
 • Familiarity with GraphQL, Next.js, and web performance optimization.`
 
-const presetResumes = [
-  {
-    name: 'Alex Mercer – Frontend Dev',
-    template: 'Modern Layout — Single Column',
-    edited: 'Edited 2h ago',
-    summary: 'Detail-oriented Junior Web Developer with a strong foundation in modern frontend architectures. Experienced in building responsive interfaces with React, JavaScript, HTML5, CSS3, and Git.',
-    skills: 'React, JavaScript, HTML5, CSS3, Tailwind CSS, Git, SQL, Redux, REST APIs',
-    fullText: `ALEX MERCER
-Seattle, WA • (555) 019-2831 • alex.mercer@email.com • github.com/alexmercer
-
-PROFESSIONAL SUMMARY
-Detail-oriented Junior Web Developer with a strong foundation in modern frontend architectures. Experienced in building responsive interfaces with React, JavaScript, and Tailwind CSS. Passionate about optimization and clean, semantic markup.
-
-WORK EXPERIENCE
-Junior Web Developer — Apex Tech Solutions (2024 – Present)
-• Developed responsive web applications using React, HTML5, and CSS3.
-• Collaborated with design teams on UI components and Git workflows.
-• Integrated REST APIs and optimized client-side state management.
-
-SKILLS INVENTORY
-• Languages: JavaScript, HTML5, CSS3, SQL
-• Frameworks: React, Tailwind CSS, Redux, REST APIs
-• Tools: Git, GitHub, VS Code
-
-EDUCATION
-B.S. Computer Science — University of Washington, 2024`
-  },
-  {
-    name: 'Alex Mercer – UX Portfolio',
-    template: 'Creative Portfolio — Case Studies',
-    edited: 'Edited yesterday',
-    summary: 'Product-minded designer focused on creating thoughtful digital experiences, wireframes, and scalable design systems in Figma.',
-    skills: 'Figma, Prototyping, Design Systems, User Research, Accessibility, HTML, CSS',
-    fullText: `ALEX MERCER — UX PORTFOLIO
-Seattle, WA • alex.mercer@email.com • alexmercer.design
-
-SUMMARY
-Product-minded designer focused on creating thoughtful digital experiences, design tokens, and scalable design systems in Figma.
-
-PROJECTS & CASE STUDIES
-Enterprise Design System (2024)
-• Built comprehensive component library in Figma with auto-layout and variant tokens.
-• Conducted user research and usability testing with 20+ participants.
-• Collaborated with engineering teams to ensure pixel-perfect accessibility standards (WCAG).
-
-SKILLS & TOOLS
-• Design: Figma, Wireframing, Prototyping, Design Systems, Design Tokens
-• Research: User Research, Usability Testing, Information Architecture
-• Frontend: HTML, CSS, Responsive Web Design`
-  }
-]
-
 type Props = {
   onScore: (result: ScoreResult) => void
   uploadedDocument?: UploadedDocument | null
+  savedDocuments?: SavedDocument[]
   previousScore?: ScoreResult | null
   onDocumentSaved?: (document: SavedDocument) => void
 }
 
-function JobMatches({ onScore, uploadedDocument: initialDocument, previousScore, onDocumentSaved }: Props) {
+const detectJobMetadata = (jobText: string) => {
+  const lines = jobText.split(/\r?\n/).map((line) => line.replace(/^[\s-*]+/, '').trim()).filter(Boolean)
+  let title = ''
+  let detectedCompany = ''
+  for (const line of lines.slice(0, 8)) {
+    const labeledTitle = line.match(/^(?:job title|position|role|hiring for)\s*[:\-]\s*(.+)$/i)
+    const labeledCompany = line.match(/^(?:company|employer|organization)\s*[:\-]\s*(.+)$/i)
+    const paired = line.match(/^(.{3,70}?)\s+(?:at|[@|])\s+(.{2,70})$/i)
+    if (labeledTitle) title = labeledTitle[1].trim()
+    if (labeledCompany) detectedCompany = labeledCompany[1].trim()
+    if (paired) {
+      title ||= paired[1].trim()
+      detectedCompany ||= paired[2].trim()
+    }
+  }
+  return { title: title || lines[0] || 'Target Role', company: detectedCompany || 'Target Company' }
+}
+
+function JobMatches({ onScore, uploadedDocument: initialDocument, savedDocuments = [], previousScore, onDocumentSaved }: Props) {
   const [docSource, setDocSource] = useState<'preset' | 'upload'>('upload')
-  const [selectedPresetIndex, setSelectedPresetIndex] = useState(0)
+  const [selectedPresetId, setSelectedPresetId] = useState(savedDocuments[0]?.id || '')
   const [uploadedDoc, setUploadedDoc] = useState<UploadedDocument | null>(initialDocument || null)
   const [customText, setCustomText] = useState(initialDocument?.text || '')
   const [isUploading, setIsUploading] = useState(false)
   const [showPreview, setShowPreview] = useState(false)
   const [uploadError, setUploadError] = useState<string | null>(null)
 
-  const [jobTitle, setJobTitle] = useState(previousScore?.job_title || 'Frontend Developer')
-  const [company, setCompany] = useState(previousScore?.company || 'TechCorp Inc.')
+  const [jobTitle, setJobTitle] = useState(previousScore?.job_title || '')
+  const [company, setCompany] = useState(previousScore?.company || '')
   const [description, setDescription] = useState(previousScore?.job_description || '')
   const [isScoring, setIsScoring] = useState(false)
   const [attempted, setAttempted] = useState(false)
   const fileInputRef = useRef<HTMLInputElement>(null)
 
-  const activePreset = presetResumes[selectedPresetIndex]
+  const activePreset = savedDocuments.find((document) => document.id === selectedPresetId) || savedDocuments[0]
 
   // Active resume text determined by mode
   const activeResumeText = docSource === 'upload'
     ? (customText || uploadedDoc?.text || '')
-    : activePreset.fullText
+    : activePreset?.text || ''
 
   const activeResumeName = docSource === 'upload'
     ? (uploadedDoc?.filename || 'Custom Uploaded Resume')
-    : activePreset.name
+    : activePreset?.name || 'Untitled document'
 
   const isReady = description.trim().length >= 120 && activeResumeText.trim().length >= 50
 
@@ -182,6 +149,7 @@ function JobMatches({ onScore, uploadedDocument: initialDocument, previousScore,
     }
 
     setIsScoring(true)
+    const scoredDocument = docSource === 'upload' ? uploadedDoc : activePreset
     try {
       const response = await fetch(apiUrl('/api/score'), {
         method: 'POST',
@@ -198,7 +166,9 @@ function JobMatches({ onScore, uploadedDocument: initialDocument, previousScore,
       if (response.ok) {
         const json = await response.json()
         if (json.success && json.data) {
-          onScore({ ...json.data, job_description: description })
+          setJobTitle(json.data.job_title || jobTitle)
+          setCompany(json.data.company || company)
+          onScore({ ...json.data, document_id: scoredDocument?.id, job_description: description })
           return
         }
       }
@@ -217,6 +187,7 @@ function JobMatches({ onScore, uploadedDocument: initialDocument, previousScore,
 
       const fallbackResult: ScoreResult = {
         id: `scan-${Date.now()}`,
+        document_id: scoredDocument?.id,
         date: new Date().toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' }),
         timestamp: `Scored Today, ${new Date().toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}`,
         job_title: jobTitle,
@@ -226,6 +197,7 @@ function JobMatches({ onScore, uploadedDocument: initialDocument, previousScore,
         score: `${scoreValue}%`,
         overall_score: scoreValue,
         color: scoreValue >= 75 ? 'green' : scoreValue >= 55 ? 'amber' : 'rose',
+        ai_guidance_used: false,
         version: activeResumeName,
         explanation: `Your document demonstrates relevant alignment for ${jobTitle} roles, showing direct relevance in ${matched.slice(0, 4).join(', ') || 'core concepts'}. Missing coverage in ${missing.slice(0, 3).join(', ') || 'advanced tools'} currently prevents higher tier placement.`,
         matched_terms: matched.length ? matched : ['React', 'HTML', 'CSS', 'Git'],
@@ -250,6 +222,12 @@ function JobMatches({ onScore, uploadedDocument: initialDocument, previousScore,
           }
         ]
       }
+      const detectedMetadata = detectJobMetadata(description)
+      fallbackResult.job_title = detectedMetadata.title
+      fallbackResult.company = detectedMetadata.company
+      fallbackResult.role = `${fallbackResult.job_title} at ${fallbackResult.company}`
+      setJobTitle(fallbackResult.job_title)
+      setCompany(fallbackResult.company)
       onScore(fallbackResult)
     } finally {
       setIsScoring(false)
@@ -374,32 +352,43 @@ function JobMatches({ onScore, uploadedDocument: initialDocument, previousScore,
 
               {uploadError && <p className="description-error" role="alert">{uploadError}</p>}
             </div>
-          ) : (
+          ) : activePreset ? (
             <article className="surface selected-resume-card">
               <div className="resume-card-top">
                 <span className="document-kind">PRESET RESUME</span>
-                <small>{activePreset.edited}</small>
+                <small>Updated {new Date(activePreset.updated_at).toLocaleDateString()}</small>
               </div>
               <h3>{activePreset.name}</h3>
-              <p className="resume-template-name">{activePreset.template}</p>
+              <p className="resume-template-name">{activePreset.format} document</p>
               <div className="resume-card-rule" />
               <span className="eyebrow">SUMMARY</span>
-              <p className="resume-summary">{activePreset.summary}</p>
+              <p className="resume-summary">{activePreset.summary_preview || 'No summary available.'}</p>
               <span className="eyebrow">SKILLS INVENTORY</span>
-              <p className="resume-skills">{activePreset.skills}</p>
-              <div className="preset-selector-row">
-                {presetResumes.map((p, idx) => (
-                  <button
-                    key={p.name}
-                    type="button"
-                    className={`preset-btn ${selectedPresetIndex === idx ? 'is-active' : ''}`}
-                    onClick={() => setSelectedPresetIndex(idx)}
-                  >
-                    {idx === 0 ? 'Alex (Frontend)' : 'Alex (UX Portfolio)'}
-                  </button>
-                ))}
+              <p className="resume-skills">{activePreset.skills_preview || 'No skills preview available.'}</p>
+              <div className="preset-selector">
+                <label htmlFor="saved-document-select">Choose saved document</label>
+                <select
+                  id="saved-document-select"
+                  value={activePreset.id}
+                  onChange={(event) => setSelectedPresetId(event.target.value)}
+                >
+                  {savedDocuments.map((document) => (
+                    <option key={document.id} value={document.id}>
+                      {document.name} · {new Date(document.updated_at).toLocaleDateString()}
+                    </option>
+                  ))}
+                </select>
               </div>
             </article>
+          ) : (
+            <div className="surface empty-preset-card">
+              <span className="upload-icon" aria-hidden="true">＋</span>
+              <h3>No saved documents available</h3>
+              <p>Upload a resume or create your own document first. Saved documents will appear here as selectable presets.</p>
+              <button className="action-button action-outline" type="button" onClick={() => setDocSource('upload')}>
+                Upload a document
+              </button>
+            </div>
           )}
         </section>
 

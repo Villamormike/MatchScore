@@ -1,5 +1,6 @@
 import os
 import datetime
+import re
 from flask import Flask, jsonify, request
 from flask_cors import CORS
 from dotenv import load_dotenv
@@ -171,6 +172,49 @@ def apply_recommendations():
     return jsonify({"success": True, "data": edited_resume})
 
 
+def extract_job_metadata(job_text: str, supplied_title: str, supplied_company: str) -> tuple[str, str]:
+    """Extract role and company labels from a job post when the form fields are empty."""
+    title = supplied_title.strip()
+    company = supplied_company.strip()
+    lines = [re.sub(r"\s+", " ", line).strip(" -*\t") for line in job_text.splitlines()]
+    lines = [line for line in lines if line]
+
+    def labeled_value(labels: str) -> str:
+        pattern = rf"^(?:{labels})\s*[:\-]\s*(.+)$"
+        for line in lines[:12]:
+            match = re.match(pattern, line, re.IGNORECASE)
+            if match:
+                return match.group(1).strip(" .")
+        return ""
+
+    if not title:
+        title = labeled_value(r"job title|position|role|hiring for")
+    if not company:
+        company = labeled_value(r"company|employer|organization")
+
+    for line in lines[:8]:
+        if not title or not company:
+            match = re.match(r"^(.{3,70}?)\s+(?:at|[@|])\s+(.{2,70})$", line, re.IGNORECASE)
+            if match:
+                title = title or match.group(1).strip(" -:")
+                company = company or match.group(2).strip(" -:")
+                break
+        if not title or not company:
+            match = re.match(r"^(.{3,70}?)\s+-\s+(.{2,70})$", line)
+            if match and not re.search(r"\b(remote|hybrid|full[- ]?time|part[- ]?time)\b", line, re.IGNORECASE):
+                title = title or match.group(1).strip()
+                company = company or match.group(2).strip()
+                break
+
+    if not title:
+        for line in lines[:8]:
+            if 5 <= len(line) <= 70 and not re.search(r"(@|:|\b(company|about|responsibilities|requirements)\b)", line, re.IGNORECASE):
+                title = line
+                break
+
+    return title or "Target Role", company or "Target Company"
+
+
 @app.post("/api/score")
 def score_match():
     """
@@ -184,27 +228,19 @@ def score_match():
     resume_text = data.get("resume_text", "")
     job_text = data.get("job_description", "")
     resume_name = data.get("resume_name", "My Resume")
-    job_title = data.get("job_title", "Frontend Developer")
-    company = data.get("company", "Target Company")
+    job_title = data.get("job_title", "")
+    company = data.get("company", "")
 
     if not resume_text.strip():
         return jsonify({"error": "Resume text is empty or missing"}), 400
     if not job_text.strip():
         return jsonify({"error": "Job description is empty or missing"}), 400
 
-    # Extract simple job title and company from description if default
-    if job_title == "Frontend Developer" or not job_title:
-        first_line = job_text.strip().split("\n")[0][:60]
-        if " at " in first_line:
-            parts = first_line.split(" at ")
-            job_title = parts[0].strip()
-            company = parts[1].strip()
-        elif " - " in first_line:
-            parts = first_line.split(" - ")
-            job_title = parts[0].strip()
-            company = parts[1].strip()
-        elif len(first_line) > 5 and len(first_line) < 45:
-            job_title = first_line
+    job_title, company = extract_job_metadata(
+        job_text,
+        job_title if isinstance(job_title, str) else "",
+        company if isinstance(company, str) else "",
+    )
 
     # 1. Deterministic Match Computation
     match_result = compute_match(resume_text, job_text)
