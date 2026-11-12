@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from 'react'
 import type { User } from '@supabase/supabase-js'
 import './App.css'
+import BrandMark from './components/BrandMark'
 import { supabase } from './supabaseClient'
 import AIRecommendations from './pages/AIRecommendations/AIRecommendations'
 import Dashboard from './pages/Dashboard/Dashboard'
@@ -79,8 +80,8 @@ function AppHeader({
   return (
     <header className="app-header">
       <button className="brand" type="button" onClick={() => onNavigate('dashboard')} aria-label="MatchScore dashboard">
-        <span className="brand-mark" aria-hidden="true"><span /></span>
-        <span>MatchScore</span>
+        <BrandMark />
+        <span className="brand-wordmark">Match<span className="brand-wordmark-accent">Score</span></span>
       </button>
       <nav className="main-navigation" aria-label="Main navigation">
         {navigation.map((item) => (

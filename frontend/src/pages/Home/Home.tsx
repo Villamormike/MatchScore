@@ -1,4 +1,5 @@
 import { useEffect, useState, type CSSProperties } from 'react'
+import BrandMark from '../../components/BrandMark'
 import './Home.css'
 
 type Props = {
@@ -54,8 +55,8 @@ function Home({ onGetStarted, onSignIn }: Props) {
     <main className="home-page">
       <nav className="home-nav" aria-label="Marketing navigation">
         <button className="home-brand" type="button" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>
-          <span className="brand-mark"><span /></span>
-          <span>MatchScore</span>
+          <BrandMark />
+          <span className="brand-wordmark">Match<span className="brand-wordmark-accent">Score</span></span>
         </button>
         <div className="home-nav-links">
           <a href="#how-it-works">How it works</a>
@@ -77,7 +78,7 @@ function Home({ onGetStarted, onSignIn }: Props) {
             <button className="home-primary-button" type="button" onClick={onGetStarted}>Optimize my resume <span>→</span></button>
             <button className="home-secondary-button" type="button" onClick={() => document.getElementById('how-it-works')?.scrollIntoView({ behavior: 'smooth' })}>See how it works <span>↓</span></button>
           </div>
-          <div className="home-proof"><span className="proof-project-mark" aria-hidden="true">MS</span><span><strong>Understand your match</strong> and improve your next application</span></div>
+          <div className="home-proof"><BrandMark className="proof-project-mark" /><span><strong>Understand your match</strong> and improve your next application</span></div>
         </div>
         <div className="home-hero-visual" aria-label="Resume match score preview">
           <div className="score-preview">
@@ -121,7 +122,7 @@ function Home({ onGetStarted, onSignIn }: Props) {
 
       <section className="home-cta home-scroll-reveal" data-home-reveal><p className="home-kicker">Your next chapter starts here</p><h2>Ready to make your<br /><em>next move?</em></h2><button className="home-primary-button" type="button" onClick={onGetStarted}>Get started for free <span>→</span></button><small>No credit card required. Your first resume analysis is on us.</small></section>
 
-      <footer className="home-footer"><span className="home-brand"><span className="brand-mark"><span /></span><span>MatchScore</span></span><span>© 2026 MatchScore</span><div><a href="#features">Features</a><a href="#how-it-works">How it works</a><a href="#project">About</a></div></footer>
+      <footer className="home-footer"><span className="home-brand"><BrandMark /><span className="brand-wordmark">Match<span className="brand-wordmark-accent">Score</span></span></span><span>© 2026 MatchScore</span><div><a href="#features">Features</a><a href="#how-it-works">How it works</a><a href="#project">About</a></div></footer>
     </main>
   )
 }

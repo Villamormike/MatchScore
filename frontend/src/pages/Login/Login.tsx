@@ -1,4 +1,5 @@
 import { useState, type FormEvent } from 'react'
+import BrandMark from '../../components/BrandMark'
 import { supabase } from '../../supabaseClient'
 import './Login.css'
 
@@ -101,8 +102,8 @@ function Login({ onSignIn }: Props) {
     <main className="login-page">
       <section className="login-story">
         <button className="login-brand" type="button" onClick={onSignIn}>
-          <span className="brand-mark brand-mark--light"><span /></span>
-          <span>MatchScore</span>
+          <BrandMark variant="light" />
+          <span className="brand-wordmark">Match<span className="brand-wordmark-accent">Score</span></span>
         </button>
         <div className="login-story-center">
           <div className="overlap-card" aria-hidden="true">

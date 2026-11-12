@@ -28,12 +28,11 @@
 }
 
 .brand-mark--light {
-  background: rgba(255,255,255,.95);
+  box-shadow: 0 4px 12px rgba(4, 52, 48, 0.28);
 }
 
-.brand-mark--light::before,
-.brand-mark--light span {
-  border-color: #118d80;
+.login-brand .brand-wordmark-accent {
+  color: #9cefe5;
 }
 
 .login-story-center {
