@@ -1,0 +1,206 @@
+MatchScore Project Status
+=========================
+Checked: November 2, 2026
+
+This file summarizes functionality that is present in the repository based on
+the current source code, tests, database schema, and recent Git history.
+
+
+COMPLETED FUNCTIONALITY
+------------------------
+
+1. Frontend application shell
+   - React + TypeScript frontend built with Vite.
+   - Main navigation includes Dashboard, Templates, Job Matches, and Feedback.
+   - Screens exist for home, login, dashboard, templates, job matching, results,
+     recommendations, score history, and resume editing.
+   - Shared application state tracks the active document, active score result,
+     saved documents, score history, and account errors.
+
+2. Authentication
+   - Supabase email/password authentication is integrated.
+   - Login and account creation screens are present.
+   - Account confirmation uses a numeric email token flow.
+   - Authenticated users are redirected to the dashboard.
+   - Signing out returns the user to the home screen.
+
+3. Resume/document upload and parsing
+   - Backend upload endpoint: POST /api/upload-resume.
+   - TXT, PDF, and DOCX files are supported.
+   - PDF text extraction preserves line breaks where possible.
+   - DOCX extraction supports paragraphs, headings, bullet lists, tables, and
+     common formatting.
+   - Parsed documents include text, HTML when available, detected sections,
+     format, word count, character count, and previews.
+   - The frontend also has a browser text fallback for plain-text uploads.
+
+4. Resume editor
+   - Editable content area for resume documents.
+   - Formatting tools include headings, font family, font size, bold, italic,
+     underline, strikethrough, colors, highlighting, alignment, lists, indents,
+     line spacing, links, and images.
+   - Undo and redo controls are available.
+   - Documents can be uploaded directly from the editor.
+   - Editor changes are saved when the document loses focus.
+   - Saved documents can be opened from the dashboard.
+
+5. Resume templates
+   - Preset resume/template options are available.
+   - AI-generated layouts are supported through POST /api/generate-layout.
+   - Generated layouts return a title, plain text, and editable HTML.
+   - A local fallback layout is returned when Gemini is unavailable.
+   - The layout prompt instructs the model not to invent personal history,
+     education, metrics, or skills.
+
+6. Job matching workflow
+   - Users can select a preset resume or upload/use a custom resume.
+   - Job title, company, and job description can be entered.
+   - The job matching screen validates minimum resume and job-description input.
+   - Scoring results include role, company, score, matched terms, missing terms,
+     partial terms, explanation, recommendations, and score breakdown.
+
+7. Deterministic scoring engine
+   - TF-IDF vectorization is implemented.
+   - Cosine similarity is calculated between the resume and job posting.
+   - A technology and industry skill lexicon is included.
+   - Skill variants are normalized to canonical names.
+   - Related skill clusters produce partial matches.
+   - Overall scores are calibrated to a 0-100 range.
+   - Results include direct matches, missing terms, partial terms, and a
+     breakdown of scoring values.
+
+8. AI guidance
+   - Gemini integration is implemented for tailored explanations and
+     recommendations.
+   - API key configuration supports GEMINI_API_KEY, GEMINI_API_KEYS, or
+     backend/api_key.
+   - Multiple keys are tried in order when a provider request fails.
+   - Configurable primary and fallback Gemini models are supported.
+   - Requests use bounded generation settings and timeout/retry behavior.
+   - Gemini JSON responses are parsed and validated.
+   - Deterministic explanations and recommendations remain available when
+     Gemini is not configured or returns an invalid response.
+   - Recommendations are section-targeted and contain impact, confidence,
+     reason, and suggested replacement text.
+
+9. Apply recommendation
+   - The Feedback/AI Recommendations screen has a working Apply Edit button.
+   - Applying a recommendation inserts the suggested text into the matching
+     resume section.
+   - Supported sections include Work Experience, Skills Inventory, Professional
+     Summary, and Education.
+   - Existing HTML content is preserved and updated when present.
+   - Duplicate suggestions are not inserted again.
+   - Updated word count, character count, and summary preview are recalculated.
+   - The updated document is saved through the existing Supabase document path.
+   - After saving, the updated document opens in the Resume Editor.
+   - The UI shows an Applying state, success state, and an error message when
+     the operation fails.
+   - Whole-resume AI improvement uses all recommendations and rewrites the
+     resume naturally instead of copying recommendation instructions.
+   - After an AI edit, the resume is automatically scored again against the
+     same job description.
+   - Users can repeat the improvement cycle with the newest recommendations.
+   - The flow reports when no meaningful improvement is possible without
+     additional truthful experience, projects, skills, or results.
+
+10. Persistence and account data
+    - Supabase storage functions exist for documents and score matches.
+    - Documents can be inserted, updated, loaded, and deleted.
+    - Uploaded source files can be stored in the resumes storage bucket.
+    - Score results can be persisted with job posting information.
+    - Account data loading restores saved documents and score history.
+    - Supabase schema includes profiles, documents, job postings, score matches,
+      templates, auth profile creation, RLS policies, and resume storage.
+
+11. History and API endpoints
+    - GET /api/health is implemented.
+    - POST /api/upload-resume is implemented.
+    - POST /api/generate-layout is implemented.
+    - POST /api/score is implemented.
+    - GET /api/history is implemented.
+    - POST /api/history is implemented.
+    - Backend scoring history is maintained in memory during the running process.
+    - Persistent account history is handled by Supabase from the frontend.
+    - Score entries can be individually deleted from Score History.
+    - Saved score entries retain their associated document ID.
+    - Recommendations are shown in the editor only for the document version
+      that was actually scored.
+
+12. Automated verification currently present
+    - backend/test_api.py contains health, text upload, and scoring tests.
+    - backend/test_e2e_scoring.py covers health, PDF parsing, scoring, AI
+      recommendations, and history behavior.
+    - Frontend TypeScript production build passes.
+    - Frontend lint runs successfully with existing warnings.
+    - Backend API tests pass: 3 tests completed successfully.
+    - Canva-style PDF parsing has a layout and standard extraction fallback.
+    - Image-only PDFs return an actionable export-format error.
+    - PDF export hides editor controls, AI markers, and page guides.
+
+
+CURRENT LIMITATIONS / FOLLOW-UP ITEMS
+-------------------------------------
+
+- The backend in-memory scoring_history is lost when the Flask process stops;
+  persistent account history depends on Supabase and an authenticated frontend.
+- The AI improvement and Apply Edit flows have not been given dedicated
+  automated frontend/browser tests.
+- Gemini recommendations depend on a configured API key; deterministic guidance
+  is used when Gemini is unavailable.
+- Multiple keys from the same Google Cloud project may share quota, so key
+  rotation does not guarantee additional Gemini capacity. Separate legitimate
+  quota projects or billing may be required.
+- AI improvement cannot add experience that the user has not supplied. Users
+  must add truthful projects, skills, responsibilities, or measurable outcomes
+  before further improvement can be made.
+- Canva image-only PDFs still cannot be read because they contain no selectable
+  text. Canva designs should be exported as PDF Standard, DOCX, or TXT.
+- Browser-generated PDF headers and footers cannot be disabled by page code.
+  Users must turn off “Headers and footers” in the browser print dialog.
+- The project README describes SQLite as planned, while the implemented
+  persistence layer uses Supabase/PostgreSQL schema and storage.
+- Frontend lint reports existing warnings in App.tsx and ResumeEditor.tsx.
+- The production build reports a bundle-size warning for a chunk over 500 kB.
+- Full browser/E2E validation requires running both the Flask backend and the
+  Vite frontend with valid Supabase configuration.
+
+
+RECOMMENDED NEXT WORK
+---------------------
+
+Priority 1:
+- Add browser tests for upload, scoring, AI improvement, repeated scoring,
+  manual editing, saving with Alt+S, and recommendation/document matching.
+- Test Canva PDF Standard, DOCX, TXT, malformed PDF, and image-only PDF cases.
+- Verify Supabase RLS policies and storage behavior with an authenticated user.
+
+Priority 2:
+- Improve AI failure states with explicit quota, invalid-key, timeout, and
+  all-keys-exhausted messages.
+- Add a user-controlled “add experience” form so users can provide new facts
+  before requesting another AI improvement.
+- Prevent duplicate score-history rows when a score is retried or an edit is
+  saved repeatedly.
+
+Priority 3:
+- Resolve frontend lint warnings.
+- Split the large frontend bundle.
+- Remove or document the legacy in-memory backend history endpoints.
+- Update README documentation so it consistently describes Supabase as the
+  implemented persistence system.
+
+
+RECENT IMPLEMENTATION HISTORY
+-----------------------------
+
+- Added the Apply Edit flow for AI recommendations and persistence.
+- Fixed editor and scoring screen behavior and added preset/AI templates.
+- Added TF-IDF and cosine similarity scoring.
+- Added authentication and template redrafting.
+- Added the initial frontend design screens.
+
+
+
+
+
