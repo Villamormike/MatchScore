@@ -1,0 +1,134 @@
+MATCHSCORE
+Instructor-format presentation script
+
+PRESENTER
+John Michael Villamor
+Author / developer of the implemented features
+
+
+SLIDE 1: TITLE
+
+Good day. This presentation introduces MatchScore, a resume-to-job matching
+application. I am Michael Villamor, the project author and developer. I will
+present the implemented features and demonstrate the complete user flow.
+
+
+SLIDE 2: SYSTEM OVERVIEW
+
+MatchScore combines resume building and job-fit evaluation in one workspace.
+
+The user can:
+- Create, upload, and edit a resume
+- Paste a job posting
+- Compute a deterministic match score
+- Review matched, missing, and partial terms
+- Receive recommendations and improve the resume
+- Re-score the updated resume and save the result
+
+The main value is a single workflow from resume creation to job application
+readiness.
+
+
+SLIDE 3: TEAM COMPOSITION
+
+The repository identifies Michael Villamor as the project author and
+full-stack developer.
+
+Presentation rule:
+- The author or developer presents the feature they implemented.
+- I will present the system overview and the complete demo.
+- I will cover the resume builder, matching engine, AI guidance, and
+  persistence because these are the implemented project areas.
+
+
+SLIDE 4: TECHNOLOGY USED
+
+Frontend:
+- React 19, TypeScript, Vite, and CSS
+
+Backend:
+- Python and Flask REST API
+
+Data and authentication:
+- Supabase email/password authentication
+- Supabase persistence and row-level security
+
+Analysis and AI:
+- scikit-learn
+- TF-IDF vectorization and cosine similarity
+- Google Gemini for explanations and recommendations
+
+Document processing supports PDF, DOCX, and TXT files, with PDF export.
+
+
+SLIDE 5: IMPLEMENTED FEATURE LIST
+
+Build:
+- Resume upload and parsing for PDF, DOCX, and TXT
+- WYSIWYG resume editor and formatting tools
+- Built-in templates and AI-generated layouts
+- PDF export
+
+Match:
+- Job title and company detection
+- Deterministic 0-100 match score
+- Matched, missing, and partial skill terms
+
+Improve:
+- AI score explanation
+- Section-targeted recommendations
+- Apply one recommendation or improve the entire resume
+- Automatic re-scoring after improvement
+
+Manage:
+- Supabase authentication
+- Saved documents and score history
+- Search, notifications, and dark mode
+
+
+SLIDE 6: AUTHOR / DEVELOPER PRESENTATION OWNERSHIP
+
+Feature or section: System overview
+Presenter: Michael Villamor
+Responsibility: Explain the product purpose and end-to-end flow.
+
+Feature or section: Resume builder and templates
+Presenter: Michael Villamor
+Responsibility: Show upload, editing, formatting, and template selection.
+
+Feature or section: Matching and scoring
+Presenter: Michael Villamor
+Responsibility: Show job input, score calculation, and term breakdown.
+
+Feature or section: AI recommendations
+Presenter: Michael Villamor
+Responsibility: Show Apply Edit, whole-resume improvement, and re-scoring.
+
+Feature or section: Persistence and account flow
+Presenter: Michael Villamor
+Responsibility: Show saved documents and score history.
+
+
+SLIDE 7: DEMO (FINAL CONTENT SLIDE)
+
+I will now show the live web application and demonstrate this flow:
+1. Sign in and open the dashboard.
+2. Select a template or upload a resume.
+3. Paste a job posting and click Score.
+4. Review the score and matched, missing, and partial terms.
+5. Open the recommendations.
+6. Apply a recommendation or improve the entire resume with AI.
+7. Re-score the updated resume.
+8. Confirm the document and score history remain available.
+
+The demo is last so the presentation ends with the actual working website.
+
+
+SLIDE 8: CLOSING
+
+MatchScore helps users build better resumes and apply with more confidence.
+
+GitHub:
+https://github.com/Villamormike/MatchScore
+
+Thank you.

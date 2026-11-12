@@ -88,6 +88,12 @@ SKILL_SUGGESTIONS = {
 
 logger = logging.getLogger(__name__)
 
+DEPRECATED_GEMINI_MODELS = {
+    "gemini-2.5-flash": "gemini-3.6-flash",
+    "gemini-2.5-flash-lite": "gemini-3.5-flash-lite",
+}
+DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile"
+
 
 def _fallback_ai_layout(prompt: str) -> Dict[str, str]:
     """Return a usable editable layout when the external model is unavailable."""
@@ -165,6 +171,19 @@ def _get_gemini_api_keys() -> List[str]:
     return unique_keys(keys)
 
 
+def _get_groq_api_keys() -> List[str]:
+    """Read ordered Groq keys from environment variables."""
+    configured_keys = os.getenv("GROQ_API_KEYS", "").strip()
+    if configured_keys:
+        return list(dict.fromkeys(
+            key.strip()
+            for key in re.split(r"[\r\n,]+", configured_keys)
+            if key.strip()
+        ))
+    configured_key = os.getenv("GROQ_API_KEY", "").strip()
+    return [configured_key] if configured_key else []
+
+
 def _parse_json_response(text: str) -> Dict[str, Any]:
     """Parse JSON returned by the model, including fenced JSON responses."""
     cleaned = text.strip()
@@ -175,6 +194,31 @@ def _parse_json_response(text: str) -> Dict[str, Any]:
     if not isinstance(parsed, dict):
         raise ValueError("Gemini response must be a JSON object")
     return parsed
+
+
+def _configured_gemini_models() -> List[str]:
+    configured_model = os.getenv("GEMINI_MODEL", "gemini-3.6-flash").strip()
+    configured_fallback = os.getenv("GEMINI_FALLBACK_MODEL", "gemini-3.5-flash-lite").strip()
+    models: List[str] = []
+    for model in (configured_model, configured_fallback):
+        if not model:
+            continue
+        replacement = DEPRECATED_GEMINI_MODELS.get(model)
+        if replacement:
+            logger.warning(
+                "Gemini model %s is retired; using replacement %s. Update the Render environment variables.",
+                model,
+                replacement,
+            )
+            model = replacement
+        if model not in models:
+            models.append(model)
+    return models
+
+
+def _configured_groq_models() -> List[str]:
+    configured_model = os.getenv("GROQ_MODEL", DEFAULT_GROQ_MODEL).strip()
+    return [configured_model] if configured_model else []
 
 
 def _request_gemini_json(prompt: str, timeout: int) -> Dict[str, Any] | None:
@@ -193,9 +237,7 @@ def _request_gemini_json(prompt: str, timeout: int) -> Dict[str, Any] | None:
         },
     }).encode("utf-8")
 
-    configured_model = os.getenv("GEMINI_MODEL", "gemini-3-flash-preview").strip()
-    configured_fallback = os.getenv("GEMINI_FALLBACK_MODEL", "gemini-3.6-flash").strip()
-    models = list(dict.fromkeys(model for model in (configured_model, configured_fallback) if model))
+    models = _configured_gemini_models()
 
     for key_index, api_key in enumerate(api_keys, start=1):
         for model in models:
@@ -237,6 +279,71 @@ def _request_gemini_json(prompt: str, timeout: int) -> Dict[str, Any] | None:
     return None
 
 
+def _request_groq_json(prompt: str, timeout: int) -> Dict[str, Any] | None:
+    """Request JSON from Groq's OpenAI-compatible chat completions API."""
+    api_keys = _get_groq_api_keys()
+    if not api_keys:
+        return None
+
+    body = json.dumps({
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.2,
+        "max_tokens": 2048,
+        "response_format": {"type": "json_object"},
+    }).encode("utf-8")
+    models = _configured_groq_models()
+
+    for key_index, api_key in enumerate(api_keys, start=1):
+        for model in models:
+            try:
+                request = Request(
+                    "https://api.groq.com/openai/v1/chat/completions",
+                    data=body,
+                    headers={
+                        "Authorization": f"Bearer {api_key}",
+                        "Content-Type": "application/json",
+                    },
+                    method="POST",
+                )
+                with urlopen(request, timeout=timeout) as response:
+                    response_data = json.loads(response.read().decode("utf-8"))
+                model_text = response_data["choices"][0]["message"]["content"]
+                parsed_response = _parse_json_response(model_text)
+                logger.info(
+                    "Groq request succeeded with key %d and model %s",
+                    key_index,
+                    model,
+                )
+                return parsed_response
+            except HTTPError as exc:
+                error_body = exc.read().decode("utf-8", errors="replace")
+                logger.warning(
+                    "Groq key %d with model %s returned HTTP %s: %s",
+                    key_index,
+                    model,
+                    exc.code,
+                    error_body[:300],
+                )
+                continue
+            except (URLError, TimeoutError, KeyError, IndexError, TypeError, ValueError) as exc:
+                logger.warning("Groq key %d with model %s failed: %s", key_index, model, exc)
+                continue
+    logger.error("Groq request failed after trying %d configured key(s) and %d model(s)", len(api_keys), len(models))
+    return None
+
+
+def _request_ai_json(prompt: str, timeout: int) -> Dict[str, Any] | None:
+    """Try configured AI providers in order, preserving deterministic fallbacks."""
+    response = _request_gemini_json(prompt, timeout)
+    if response is not None:
+        return response
+    return _request_groq_json(prompt, timeout)
+
+
+def _has_ai_api_keys() -> bool:
+    return bool(_get_gemini_api_keys() or _get_groq_api_keys())
+
+
 def _validate_ai_guidance(payload: Dict[str, Any]) -> Dict[str, Any]:
     explanation = payload.get("explanation")
     recommendations = payload.get("recommendations")
@@ -274,7 +381,7 @@ def generate_ai_guidance(
     job_title: str,
 ) -> Dict[str, Any] | None:
     """Ask Gemini for tailored guidance, returning None when it cannot be used."""
-    if not _get_gemini_api_keys():
+    if not _has_ai_api_keys():
         return None
 
     prompt = f"""
@@ -309,21 +416,21 @@ RESUME:
 JOB POSTING:
 {job_text[:12000]}
 """
-    response = _request_gemini_json(prompt, timeout=45)
+    response = _request_ai_json(prompt, timeout=45)
     if response is None:
-        logger.warning("Gemini guidance unavailable; using deterministic guidance")
+        logger.warning("AI guidance unavailable; using deterministic guidance")
         return None
     try:
         return _validate_ai_guidance(response)
     except ValueError as exc:
-        logger.warning("Gemini guidance response was invalid; using deterministic guidance: %s", exc)
+        logger.warning("AI guidance response was invalid; using deterministic guidance: %s", exc)
         return None
 
 
 def generate_ai_layout(prompt: str) -> Dict[str, str] | None:
     """Generate an editable resume layout from a user's design request."""
-    if not _get_gemini_api_keys():
-        logger.warning("Gemini layout unavailable; using local layout fallback because no API key is configured")
+    if not _has_ai_api_keys():
+        logger.warning("AI layout unavailable; using local layout fallback because no API key is configured")
         return _fallback_ai_layout(prompt)
 
     layout_prompt = f"""
@@ -341,15 +448,15 @@ Use placeholders where the user has not supplied personal information. Do not
 invent employment history, education, metrics, or skills. Make the layout
 professional, readable, and appropriate for the requested role or style.
 """
-    response = _request_gemini_json(layout_prompt, timeout=45)
+    response = _request_ai_json(layout_prompt, timeout=45)
     if response is None:
-        logger.warning("Gemini layout unavailable; using local layout fallback")
+        logger.warning("AI layout unavailable; using local layout fallback")
         return _fallback_ai_layout(prompt)
     title = response.get("title")
     text = response.get("text")
     html = response.get("html")
     if not all(isinstance(value, str) and value.strip() for value in (title, text, html)):
-        logger.warning("Gemini layout response was incomplete; using local layout fallback")
+        logger.warning("AI layout response was incomplete; using local layout fallback")
         return _fallback_ai_layout(prompt)
     return {"title": title.strip(), "text": text.strip(), "html": html.strip()}
 
@@ -391,13 +498,13 @@ RESUME TEXT:
 RESUME HTML:
 {resume_html[:24000]}
 """
-    response = _request_gemini_json(prompt, timeout=60)
+    response = _request_ai_json(prompt, timeout=60)
     if response is None:
         return None
     text = response.get("text")
     html = response.get("html")
     if not all(isinstance(value, str) and value.strip() for value in (text, html)):
-        logger.warning("Gemini resume edit response was incomplete")
+        logger.warning("AI resume edit response was incomplete")
         return None
     return {"text": text.strip(), "html": html.strip()}
 

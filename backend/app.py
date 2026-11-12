@@ -168,7 +168,7 @@ def apply_recommendations():
         job_title=job_title if isinstance(job_title, str) else "Target Role",
     )
     if edited_resume is None:
-        return jsonify({"error": "AI resume improvement is unavailable. Check the Gemini configuration and try again."}), 503
+        return jsonify({"error": "AI resume improvement is unavailable. Check the Gemini or Groq configuration and try again."}), 503
     return jsonify({"success": True, "data": edited_resume})
 
 

@@ -101,10 +101,19 @@ resume recommendations when a key is available. Configure keys only through loca
 `backend/api_key` file. Never place real keys, Supabase secrets, private URLs,
 or account data in this README, source code, screenshots, or commits.
 
-Supported configuration options are `GEMINI_API_KEYS`,
-`GEMINI_API_KEY`, `GEMINI_MODEL`, and `GEMINI_FALLBACK_MODEL`. Keys may also be
-listed in `backend/api_key`; that file is ignored by Git. Keys are tried in
-order when a request fails.
+Supported configuration options are `GEMINI_API_KEYS`, `GEMINI_API_KEY`,
+`GEMINI_MODEL`, `GEMINI_FALLBACK_MODEL`, `GROQ_API_KEYS`, `GROQ_API_KEY`, and
+`GROQ_MODEL`. Keys may also be listed in `backend/api_key`; that file is ignored
+by Git. Gemini is tried first, then Groq when configured and Gemini is
+unavailable.
+
+The current default models are `gemini-3.6-flash` and
+`gemini-3.5-flash-lite`. If these variables are configured in Render, use those
+model IDs there as well. The backend maps the retired `gemini-2.5-flash` and
+`gemini-2.5-flash-lite` IDs to the current replacements.
+
+Groq uses `llama-3.3-70b-versatile` by default. Set `GROQ_MODEL` if a different
+Groq model is needed.
 
 If Gemini is unavailable, scoring continues with the built-in deterministic
 explanation and recommendations.
