@@ -93,7 +93,7 @@ DEPRECATED_GEMINI_MODELS = {
     "gemini-2.5-flash-lite": "gemini-3.5-flash-lite",
 }
 DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile"
-DEFAULT_OPENROUTER_MODEL = "liquid/lfm-3.1-7b:free"
+DEFAULT_OPENROUTER_MODEL = "liquid/lfm-3-1.7b:free"
 
 
 def _fallback_ai_layout(prompt: str) -> Dict[str, str]:

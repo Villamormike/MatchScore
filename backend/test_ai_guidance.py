@@ -47,7 +47,7 @@ class TestGeminiKeyRotation(unittest.TestCase):
             os.environ,
             {
                 "OPENROUTER_API_KEY": "openrouter-test-key",
-                "OPENROUTER_MODEL": "liquid/lfm-3.1-7b:free",
+                "OPENROUTER_MODEL": "liquid/lfm-3-1.7b:free",
             },
             clear=True,
         ), patch.object(ai_guidance, "urlopen", return_value=response) as urlopen:
@@ -59,7 +59,7 @@ class TestGeminiKeyRotation(unittest.TestCase):
         self.assertEqual(request.get_header("Authorization"), "Bearer openrouter-test-key")
         self.assertEqual(
             json.loads(request.data.decode("utf-8"))["model"],
-            "liquid/lfm-3.1-7b:free",
+            "liquid/lfm-3-1.7b:free",
         )
 
     def test_ai_request_falls_back_to_groq(self):
