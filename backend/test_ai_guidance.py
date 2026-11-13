@@ -1,4 +1,5 @@
 import os
+import json
 import unittest
 from unittest.mock import patch
 from urllib.error import HTTPError
@@ -56,6 +57,10 @@ class TestGeminiKeyRotation(unittest.TestCase):
         request = urlopen.call_args.args[0]
         self.assertEqual(request.full_url, "https://openrouter.ai/api/v1/chat/completions")
         self.assertEqual(request.get_header("Authorization"), "Bearer openrouter-test-key")
+        self.assertEqual(
+            json.loads(request.data.decode("utf-8"))["model"],
+            "liquid/lfm-3.1-7b:free",
+        )
 
     def test_ai_request_falls_back_to_groq(self):
         with patch.object(ai_guidance, "_request_gemini_json", return_value=None), \

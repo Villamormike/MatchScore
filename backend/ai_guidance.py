@@ -361,12 +361,6 @@ def _request_openrouter_json(prompt: str, timeout: int) -> Dict[str, Any] | None
     if not api_keys:
         return None
 
-    body = json.dumps({
-        "messages": [{"role": "user", "content": prompt}],
-        "temperature": 0.2,
-        "max_tokens": 2048,
-        "response_format": {"type": "json_object"},
-    }).encode("utf-8")
     models = _configured_openrouter_models()
     optional_headers = {
         "HTTP-Referer": os.getenv("OPENROUTER_HTTP_REFERER", "").strip(),
@@ -376,6 +370,13 @@ def _request_openrouter_json(prompt: str, timeout: int) -> Dict[str, Any] | None
     for key_index, api_key in enumerate(api_keys, start=1):
         for model in models:
             try:
+                body = json.dumps({
+                    "model": model,
+                    "messages": [{"role": "user", "content": prompt}],
+                    "temperature": 0.2,
+                    "max_tokens": 2048,
+                    "response_format": {"type": "json_object"},
+                }).encode("utf-8")
                 request_headers = {
                     "Authorization": f"Bearer {api_key}",
                     "Content-Type": "application/json",
