@@ -121,7 +121,7 @@ model IDs there as well. The backend maps the retired `gemini-2.5-flash` and
 Groq uses `llama-3.3-70b-versatile` by default. Set `GROQ_MODEL` if a different
 Groq model is needed.
 
-OpenRouter uses `liquid/lfm-3.1-7b:free` by default when
+OpenRouter uses `liquid/lfm-3-1.7b:free` by default when
 `OPENROUTER_API_KEY` is configured. Set `OPENROUTER_MODEL` to another available
 model ID when needed. `OPENROUTER_HTTP_REFERER` and `OPENROUTER_APP_NAME` are
 optional attribution headers.
