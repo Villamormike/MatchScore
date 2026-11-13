@@ -21,3 +21,13 @@ services:
         sync: false
       - key: GROQ_MODEL
         sync: false
+      - key: OPENROUTER_API_KEYS
+        sync: false
+      - key: OPENROUTER_API_KEY
+        sync: false
+      - key: OPENROUTER_MODEL
+        sync: false
+      - key: OPENROUTER_HTTP_REFERER
+        sync: false
+      - key: OPENROUTER_APP_NAME
+        sync: false

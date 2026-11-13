@@ -31,13 +31,41 @@ class TestGeminiKeyRotation(unittest.TestCase):
         self.assertEqual(request.full_url, "https://api.groq.com/openai/v1/chat/completions")
         self.assertEqual(request.get_header("Authorization"), "Bearer groq-test-key")
 
+    def test_openrouter_request_uses_configured_model(self):
+        response = type(
+            "Response",
+            (),
+            {
+                "__enter__": lambda self: self,
+                "__exit__": lambda self, *args: None,
+                "read": lambda self: b'{"choices":[{"message":{"content":"{\\"ok\\": true}"}}]}',
+            },
+        )()
+
+        with patch.dict(
+            os.environ,
+            {
+                "OPENROUTER_API_KEY": "openrouter-test-key",
+                "OPENROUTER_MODEL": "liquid/lfm-3.1-7b:free",
+            },
+            clear=True,
+        ), patch.object(ai_guidance, "urlopen", return_value=response) as urlopen:
+            result = ai_guidance._request_openrouter_json("test", timeout=1)
+
+        self.assertEqual(result, {"ok": True})
+        request = urlopen.call_args.args[0]
+        self.assertEqual(request.full_url, "https://openrouter.ai/api/v1/chat/completions")
+        self.assertEqual(request.get_header("Authorization"), "Bearer openrouter-test-key")
+
     def test_ai_request_falls_back_to_groq(self):
         with patch.object(ai_guidance, "_request_gemini_json", return_value=None), \
-                patch.object(ai_guidance, "_request_groq_json", return_value={"provider": "groq"}):
+                patch.object(ai_guidance, "_request_groq_json", return_value={"provider": "groq"}), \
+                patch.object(ai_guidance, "_request_openrouter_json") as openrouter:
             self.assertEqual(
                 ai_guidance._request_ai_json("test", timeout=1),
                 {"provider": "groq"},
             )
+            openrouter.assert_not_called()
 
     def test_retired_models_are_mapped_to_current_models(self):
         with patch.dict(
