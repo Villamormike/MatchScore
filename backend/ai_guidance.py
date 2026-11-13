@@ -93,7 +93,7 @@ DEPRECATED_GEMINI_MODELS = {
     "gemini-2.5-flash-lite": "gemini-3.5-flash-lite",
 }
 DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile"
-DEFAULT_OPENROUTER_MODEL = "liquid/lfm-3-1.7b:free"
+DEFAULT_OPENROUTER_MODEL = "google/gemma-4-26b-a4b-it:free"
 
 
 def _fallback_ai_layout(prompt: str) -> Dict[str, str]:
@@ -237,7 +237,11 @@ def _configured_groq_models() -> List[str]:
 
 def _configured_openrouter_models() -> List[str]:
     configured_model = os.getenv("OPENROUTER_MODEL", DEFAULT_OPENROUTER_MODEL).strip()
-    return [configured_model] if configured_model else []
+    models: List[str] = []
+    for model in (configured_model, DEFAULT_OPENROUTER_MODEL):
+        if model and model not in models:
+            models.append(model)
+    return models
 
 
 def _request_gemini_json(prompt: str, timeout: int) -> Dict[str, Any] | None:

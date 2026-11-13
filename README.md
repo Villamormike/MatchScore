@@ -121,10 +121,11 @@ model IDs there as well. The backend maps the retired `gemini-2.5-flash` and
 Groq uses `llama-3.3-70b-versatile` by default. Set `GROQ_MODEL` if a different
 Groq model is needed.
 
-OpenRouter uses `liquid/lfm-3-1.7b:free` by default when
+OpenRouter uses `google/gemma-4-26b-a4b-it:free` by default when
 `OPENROUTER_API_KEY` is configured. Set `OPENROUTER_MODEL` to another available
-model ID when needed. `OPENROUTER_HTTP_REFERER` and `OPENROUTER_APP_NAME` are
-optional attribution headers.
+model ID when needed; the default free model is also tried as a fallback.
+`OPENROUTER_HTTP_REFERER` and `OPENROUTER_APP_NAME` are optional attribution
+headers.
 
 If Gemini is unavailable, scoring continues with the built-in deterministic
 explanation and recommendations.
