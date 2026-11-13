@@ -388,7 +388,7 @@ def _request_openrouter_json(prompt: str, timeout: int) -> Dict[str, Any] | None
                     "model": model,
                     "messages": [{"role": "user", "content": prompt}],
                     "temperature": 0.2,
-                    "max_tokens": 2048,
+                    "max_tokens": 8192,
                     "response_format": {"type": "json_object"},
                 }).encode("utf-8")
                 request_headers = {

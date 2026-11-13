@@ -61,6 +61,7 @@ class TestGeminiKeyRotation(unittest.TestCase):
             json.loads(request.data.decode("utf-8"))["model"],
             "liquid/lfm-3-1.7b:free",
         )
+        self.assertEqual(json.loads(request.data.decode("utf-8"))["max_tokens"], 8192)
 
     def test_openrouter_request_skips_empty_content(self):
         response = type(
