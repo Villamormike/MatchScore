@@ -71,6 +71,11 @@ deployment:
    - `VITE_API_BASE_URL` set to the deployed Render API URL
 4. Deploy and add the Vercel URL to Supabase's allowed site and redirect URLs.
 
+In Supabase Authentication settings, set the deployed Vercel URL as the Site URL
+and add both the deployed URL and `http://localhost:5173` as redirect URLs. The
+frontend also passes its current origin when requesting signup and password-reset
+emails, so confirmation links follow the environment where the request was made.
+
 The local frontend still uses its existing `.env.local` values, so this setup
 does not change local development behavior.
 
