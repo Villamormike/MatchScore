@@ -47,6 +47,9 @@ function Login({ onSignIn }: Props) {
         const { data, error: signUpError } = await supabase.auth.signUp({
           email: email.trim().toLowerCase(),
           password,
+          options: {
+            emailRedirectTo: window.location.origin,
+          },
         })
         if (signUpError) throw signUpError
         if (data.session) {
@@ -90,7 +93,9 @@ function Login({ onSignIn }: Props) {
       setError('Enter your email address first.')
       return
     }
-    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase())
+    const { error: resetError } = await supabase.auth.resetPasswordForEmail(email.trim().toLowerCase(), {
+      redirectTo: window.location.origin,
+    })
     if (resetError) {
       setError(resetError.message)
     } else {
