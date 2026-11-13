@@ -335,7 +335,7 @@ def _request_groq_json(prompt: str, timeout: int) -> Dict[str, Any] | None:
                     )
                 if not isinstance(model_text, str) or not model_text.strip():
                     logger.warning(
-                        "OpenRouter key %d with model %s returned no text content",
+                        "Groq key %d with model %s returned no text content",
                         key_index,
                         model,
                     )
@@ -406,7 +406,21 @@ def _request_openrouter_json(prompt: str, timeout: int) -> Dict[str, Any] | None
                 )
                 with urlopen(request, timeout=timeout) as response:
                     response_data = json.loads(response.read().decode("utf-8"))
-                model_text = response_data["choices"][0]["message"]["content"]
+                message = response_data["choices"][0]["message"]
+                model_text = message.get("content") if isinstance(message, dict) else None
+                if isinstance(model_text, list):
+                    model_text = "".join(
+                        block.get("text", "")
+                        for block in model_text
+                        if isinstance(block, dict)
+                    )
+                if not isinstance(model_text, str) or not model_text.strip():
+                    logger.warning(
+                        "OpenRouter key %d with model %s returned no text content",
+                        key_index,
+                        model,
+                    )
+                    continue
                 parsed_response = _parse_json_response(model_text)
                 logger.info(
                     "OpenRouter request succeeded with key %d and model %s",

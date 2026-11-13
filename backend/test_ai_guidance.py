@@ -62,6 +62,26 @@ class TestGeminiKeyRotation(unittest.TestCase):
             "liquid/lfm-3-1.7b:free",
         )
 
+    def test_openrouter_request_skips_empty_content(self):
+        response = type(
+            "Response",
+            (),
+            {
+                "__enter__": lambda self: self,
+                "__exit__": lambda self, *args: None,
+                "read": lambda self: b'{"choices":[{"message":{"content":null}}]}',
+            },
+        )()
+
+        with patch.dict(
+            os.environ,
+            {"OPENROUTER_API_KEY": "openrouter-test-key"},
+            clear=True,
+        ), patch.object(ai_guidance, "urlopen", return_value=response):
+            result = ai_guidance._request_openrouter_json("test", timeout=1)
+
+        self.assertIsNone(result)
+
     def test_ai_request_falls_back_to_groq(self):
         with patch.object(ai_guidance, "_request_gemini_json", return_value=None), \
                 patch.object(ai_guidance, "_request_groq_json", return_value={"provider": "groq"}), \
