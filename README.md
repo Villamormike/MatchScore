@@ -108,9 +108,10 @@ or account data in this README, source code, screenshots, or commits.
 
 Supported configuration options are `GEMINI_API_KEYS`, `GEMINI_API_KEY`,
 `GEMINI_MODEL`, `GEMINI_FALLBACK_MODEL`, `GROQ_API_KEYS`, `GROQ_API_KEY`, and
-`GROQ_MODEL`. Keys may also be listed in `backend/api_key`; that file is ignored
-by Git. Gemini is tried first, then Groq when configured and Gemini is
-unavailable.
+`GROQ_MODEL`, plus `OPENROUTER_API_KEYS`, `OPENROUTER_API_KEY`,
+`OPENROUTER_MODEL`, `OPENROUTER_HTTP_REFERER`, and `OPENROUTER_APP_NAME`.
+Keys may also be listed in `backend/api_key`; that file is ignored by Git.
+Gemini, Groq, and OpenRouter are tried in that order when configured.
 
 The current default models are `gemini-3.6-flash` and
 `gemini-3.5-flash-lite`. If these variables are configured in Render, use those
@@ -119,6 +120,11 @@ model IDs there as well. The backend maps the retired `gemini-2.5-flash` and
 
 Groq uses `llama-3.3-70b-versatile` by default. Set `GROQ_MODEL` if a different
 Groq model is needed.
+
+OpenRouter uses `liquid/lfm-3.1-7b:free` by default when
+`OPENROUTER_API_KEY` is configured. Set `OPENROUTER_MODEL` to another available
+model ID when needed. `OPENROUTER_HTTP_REFERER` and `OPENROUTER_APP_NAME` are
+optional attribution headers.
 
 If Gemini is unavailable, scoring continues with the built-in deterministic
 explanation and recommendations.

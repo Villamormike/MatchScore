@@ -93,6 +93,7 @@ DEPRECATED_GEMINI_MODELS = {
     "gemini-2.5-flash-lite": "gemini-3.5-flash-lite",
 }
 DEFAULT_GROQ_MODEL = "llama-3.3-70b-versatile"
+DEFAULT_OPENROUTER_MODEL = "liquid/lfm-3.1-7b:free"
 
 
 def _fallback_ai_layout(prompt: str) -> Dict[str, str]:
@@ -184,6 +185,19 @@ def _get_groq_api_keys() -> List[str]:
     return [configured_key] if configured_key else []
 
 
+def _get_openrouter_api_keys() -> List[str]:
+    """Read ordered OpenRouter keys from environment variables."""
+    configured_keys = os.getenv("OPENROUTER_API_KEYS", "").strip()
+    if configured_keys:
+        return list(dict.fromkeys(
+            key.strip()
+            for key in re.split(r"[\r\n,]+", configured_keys)
+            if key.strip()
+        ))
+    configured_key = os.getenv("OPENROUTER_API_KEY", "").strip()
+    return [configured_key] if configured_key else []
+
+
 def _parse_json_response(text: str) -> Dict[str, Any]:
     """Parse JSON returned by the model, including fenced JSON responses."""
     cleaned = text.strip()
@@ -221,6 +235,11 @@ def _configured_groq_models() -> List[str]:
     return [configured_model] if configured_model else []
 
 
+def _configured_openrouter_models() -> List[str]:
+    configured_model = os.getenv("OPENROUTER_MODEL", DEFAULT_OPENROUTER_MODEL).strip()
+    return [configured_model] if configured_model else []
+
+
 def _request_gemini_json(prompt: str, timeout: int) -> Dict[str, Any] | None:
     """Request JSON from Gemini with bounded generation and transient retries."""
     api_keys = _get_gemini_api_keys()
@@ -231,9 +250,8 @@ def _request_gemini_json(prompt: str, timeout: int) -> Dict[str, Any] | None:
         "contents": [{"parts": [{"text": prompt}]}],
         "generationConfig": {
             "temperature": 0.2,
-            "maxOutputTokens": 2048,
+            "maxOutputTokens": 4096,
             "responseMimeType": "application/json",
-            "thinkingConfig": {"thinkingBudget": 0},
         },
     }).encode("utf-8")
 
@@ -317,6 +335,11 @@ def _request_groq_json(prompt: str, timeout: int) -> Dict[str, Any] | None:
                 return parsed_response
             except HTTPError as exc:
                 error_body = exc.read().decode("utf-8", errors="replace")
+                if exc.code in (401, 403):
+                    logger.error(
+                        "Groq authentication failed for key %d. Check GROQ_API_KEY or GROQ_API_KEYS.",
+                        key_index,
+                    )
                 logger.warning(
                     "Groq key %d with model %s returned HTTP %s: %s",
                     key_index,
@@ -332,16 +355,84 @@ def _request_groq_json(prompt: str, timeout: int) -> Dict[str, Any] | None:
     return None
 
 
+def _request_openrouter_json(prompt: str, timeout: int) -> Dict[str, Any] | None:
+    """Request JSON from OpenRouter's OpenAI-compatible chat completions API."""
+    api_keys = _get_openrouter_api_keys()
+    if not api_keys:
+        return None
+
+    body = json.dumps({
+        "messages": [{"role": "user", "content": prompt}],
+        "temperature": 0.2,
+        "max_tokens": 2048,
+        "response_format": {"type": "json_object"},
+    }).encode("utf-8")
+    models = _configured_openrouter_models()
+    optional_headers = {
+        "HTTP-Referer": os.getenv("OPENROUTER_HTTP_REFERER", "").strip(),
+        "X-Title": os.getenv("OPENROUTER_APP_NAME", "MatchScore").strip(),
+    }
+
+    for key_index, api_key in enumerate(api_keys, start=1):
+        for model in models:
+            try:
+                request_headers = {
+                    "Authorization": f"Bearer {api_key}",
+                    "Content-Type": "application/json",
+                }
+                request_headers.update({
+                    name: value for name, value in optional_headers.items() if value
+                })
+                request = Request(
+                    "https://openrouter.ai/api/v1/chat/completions",
+                    data=body,
+                    headers=request_headers,
+                    method="POST",
+                )
+                with urlopen(request, timeout=timeout) as response:
+                    response_data = json.loads(response.read().decode("utf-8"))
+                model_text = response_data["choices"][0]["message"]["content"]
+                parsed_response = _parse_json_response(model_text)
+                logger.info(
+                    "OpenRouter request succeeded with key %d and model %s",
+                    key_index,
+                    model,
+                )
+                return parsed_response
+            except HTTPError as exc:
+                error_body = exc.read().decode("utf-8", errors="replace")
+                logger.warning(
+                    "OpenRouter key %d with model %s returned HTTP %s: %s",
+                    key_index,
+                    model,
+                    exc.code,
+                    error_body[:300],
+                )
+                continue
+            except (URLError, TimeoutError, KeyError, IndexError, TypeError, ValueError) as exc:
+                logger.warning("OpenRouter key %d with model %s failed: %s", key_index, model, exc)
+                continue
+    logger.error(
+        "OpenRouter request failed after trying %d configured key(s) and %d model(s)",
+        len(api_keys),
+        len(models),
+    )
+    return None
+
+
 def _request_ai_json(prompt: str, timeout: int) -> Dict[str, Any] | None:
     """Try configured AI providers in order, preserving deterministic fallbacks."""
     response = _request_gemini_json(prompt, timeout)
     if response is not None:
         return response
-    return _request_groq_json(prompt, timeout)
+    response = _request_groq_json(prompt, timeout)
+    if response is not None:
+        return response
+    return _request_openrouter_json(prompt, timeout)
 
 
 def _has_ai_api_keys() -> bool:
-    return bool(_get_gemini_api_keys() or _get_groq_api_keys())
+    return bool(_get_gemini_api_keys() or _get_groq_api_keys() or _get_openrouter_api_keys())
 
 
 def _validate_ai_guidance(payload: Dict[str, Any]) -> Dict[str, Any]:
